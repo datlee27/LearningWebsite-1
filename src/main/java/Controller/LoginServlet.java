@@ -35,49 +35,72 @@ public class LoginServlet extends HttpServlet {
                 .build();
     }
 
-  @Override
-protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    String usernameOrEmail = request.getParameter("username");
-    String password = request.getParameter("password");
-    String googleIdToken = null;
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String usernameOrEmail = request.getParameter("username");
+        String password = request.getParameter("password");
+        String googleIdToken = null;
 
-    HttpSession session = request.getSession();
-    Map<String, Object> jsonResponse = new HashMap<>();
+        HttpSession session = request.getSession();
+        Map<String, Object> jsonResponse = new HashMap<>();
 
-    // Handle JSON payload for Google Sign-In
-    if (request.getContentType() != null && request.getContentType().contains("application/json")) {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader reader = request.getReader()) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
+        // Handle JSON payload for Google Sign-In
+        if (request.getContentType() != null && request.getContentType().contains("application/json")) {
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader reader = request.getReader()) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
             }
+            String json = sb.toString();
+            logger.info("Received JSON payload: " + json);
+            Map<String, String> jsonMap = gson.fromJson(json, Map.class);
+            googleIdToken = jsonMap.get("googleIdToken");
         }
-        String json = sb.toString();
-        logger.info("Received JSON payload: " + json);
-        Map<String, String> jsonMap = gson.fromJson(json, Map.class);
-        googleIdToken = jsonMap.get("googleIdToken");
-    }
 
-    try {
-        User user = null;
-        if (googleIdToken != null) {
-            logger.info("Processing Google Sign-In with token: " + googleIdToken);
-            String googleId = verifyGoogleToken(googleIdToken);
-            if (googleId != null) {
-                user = dao.findByGoogleId(googleId);
-                if (user == null) {
-                    String email = extractEmailFromToken(googleIdToken);
-                    String defaultUsername = email != null ? email.split("@")[0] : "google_user_" + googleId;
-                    session.setAttribute("tempGoogleId", googleId);
-                    session.setAttribute("tempEmail", email);
-                    session.setAttribute("tempUsername", defaultUsername);
-                    logger.info("New Google user detected. Redirecting to selectRole.jsp");
-                    jsonResponse.put("success", true);
-                    jsonResponse.put("redirect", request.getContextPath() + "/view/selectRole.jsp");
+        try {
+            User user = null;
+            if (googleIdToken != null) {
+                logger.info("Processing Google Sign-In with token: " + googleIdToken);
+                String googleId = verifyGoogleToken(googleIdToken);
+                if (googleId != null) {
+                    user = dao.findByGoogleId(googleId);
+                    if (user == null) {
+                        String email = extractEmailFromToken(googleIdToken);
+                        String defaultUsername = email != null ? email.split("@")[0] : "google_user_" + googleId;
+                        session.setAttribute("tempGoogleId", googleId);
+                        session.setAttribute("tempEmail", email);
+                        session.setAttribute("tempUsername", defaultUsername);
+                        logger.info("New Google user detected. Redirecting to selectRole.jsp");
+                        jsonResponse.put("success", true);
+                        jsonResponse.put("redirect", request.getContextPath() + "/view/selectRole.jsp");
+                    } else {
+                        session.setAttribute("username", user.getUsername());
+                        session.setAttribute("role", user.getRole()); // Set role in session
+                        dao.logLogin(user.getUsername());
+                        // Set login time and historical activity for today
+                        session.setAttribute("loginTime", System.currentTimeMillis());
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                        String today = sdf.format(new java.util.Date());
+                        int historicalMinutes = dao.getTotalActivityForDate(user.getUsername(), today);
+                        session.setAttribute("historicalMinutesToday", historicalMinutes);
+                        logger.info("Existing Google user logged in: " + user.getUsername());
+                        jsonResponse.put("success", true);
+                        jsonResponse.put("redirect", request.getContextPath() + "/homePage");
+                    }
                 } else {
+                    logger.warning("Invalid Google token received");
+                    jsonResponse.put("success", false);
+                    jsonResponse.put("message", "Invalid Google token");
+                }
+            } else {
+                logger.info("Processing standard login with identifier: " + usernameOrEmail + ", password length: " + (password != null ? password.length() : 0));
+                user = dao.authenticate(usernameOrEmail, password, null);
+                if (user != null) {
                     session.setAttribute("username", user.getUsername());
+                    session.setAttribute("role", user.getRole()); // Set role in session
                     dao.logLogin(user.getUsername());
                     // Set login time and historical activity for today
                     session.setAttribute("loginTime", System.currentTimeMillis());
@@ -85,53 +108,32 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
                     String today = sdf.format(new java.util.Date());
                     int historicalMinutes = dao.getTotalActivityForDate(user.getUsername(), today);
                     session.setAttribute("historicalMinutesToday", historicalMinutes);
-                    logger.info("Existing Google user logged in: " + user.getUsername());
-                    jsonResponse.put("success", true);
-                    jsonResponse.put("redirect", request.getContextPath() + "/homePage");
+                    logger.info("Standard login successful for user: " + user.getUsername());
+                    response.sendRedirect(request.getContextPath() + "/homePage");
+                    return;
+                } else {
+                    logger.warning("Standard login failed for username/email: " + usernameOrEmail);
+                    request.setAttribute("error", "Invalid username or password");
+                    request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
+                    return;
                 }
-            } else {
-                logger.warning("Invalid Google token received");
-                jsonResponse.put("success", false);
-                jsonResponse.put("message", "Invalid Google token");
             }
-        } else {
-            logger.info("Processing standard login with identifier: " + usernameOrEmail + ", password length: " + (password != null ? password.length() : 0));
-            user = dao.authenticate(usernameOrEmail, password, null);
-            if (user != null) {
-                session.setAttribute("username", user.getUsername());
-                dao.logLogin(user.getUsername());
-                // Set login time and historical activity for today
-                session.setAttribute("loginTime", System.currentTimeMillis());
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                String today = sdf.format(new java.util.Date());
-                int historicalMinutes = dao.getTotalActivityForDate(user.getUsername(), today);
-                session.setAttribute("historicalMinutesToday", historicalMinutes);
-                logger.info("Standard login successful for user: " + user.getUsername());
-                response.sendRedirect(request.getContextPath() + "/homePage");
-                return;
-            } else {
-                logger.warning("Standard login failed for username/email: " + usernameOrEmail);
-                request.setAttribute("error", "Invalid usernameyou can continue from here...username/email or password");
-                request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
-                return;
-            }
-        }
 
-        if (!jsonResponse.isEmpty()) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(gson.toJson(jsonResponse));
+            if (!jsonResponse.isEmpty()) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(gson.toJson(jsonResponse));
+            }
+        } catch (SQLException e) {
+            logger.severe("Database error: " + e.getMessage());
+            request.setAttribute("error", "Database error: " + e.getMessage());
+            request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
+        } catch (Exception e) {
+            logger.severe("Unexpected error: " + e.getMessage());
+            request.setAttribute("error", "An unexpected error occurred: " + e.getMessage());
+            request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
         }
-    } catch (SQLException e) {
-        logger.severe("Database error: " + e.getMessage());
-        request.setAttribute("error", "Database error: " + e.getMessage());
-        request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
-    } catch (Exception e) {
-        logger.severe("Unexpected error: " + e.getMessage());
-        request.setAttribute("error", "An unexpected error occurred: " + e.getMessage());
-        request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
     }
-}
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -140,7 +142,7 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         if (session != null && session.getAttribute("username") != null) {
             String username = (String) session.getAttribute("username");
             try {
-                dao.logLogout(username); // Cập nhật thời gian đăng xuất
+                dao.logLogout(username); // Log logout
             } catch (Exception e) {
                 logger.severe("Error logging out: " + e.getMessage());
             }

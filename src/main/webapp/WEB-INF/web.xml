@@ -20,6 +20,18 @@
         <servlet-name>registerServlet</servlet-name>
         <servlet-class>Controller.registerServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AddCourseServlet</servlet-name>
+        <servlet-class>Controller.AddCourseServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AddLecturesServlet</servlet-name>
+        <servlet-class>Controller.AddLecturesServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AddAssignmentServlet</servlet-name>
+        <servlet-class>Controller.AddAssignmentServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>homePage</servlet-name>
         <url-pattern>/homePage</url-pattern>
@@ -35,6 +47,18 @@
     <servlet-mapping>
         <servlet-name>registerServlet</servlet-name>
         <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddCourseServlet</servlet-name>
+        <url-pattern>/addCourseServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddLecturesServlet</servlet-name>
+        <url-pattern>/addLecturesServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AddAssignmentServlet</servlet-name>
+        <url-pattern>/addAssignmentServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
