@@ -502,7 +502,7 @@ h2 {
     display: none;
     position: absolute;
     right: 0;
-    background-color: #fff;
+    background-color: #ffffff;
     border: 1px solid #ddd;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -542,7 +542,7 @@ h2 {
 
 .user-icon .bi {
     font-size:30px;
-    color: #ffffff; /* Dark gray color */
+    color: #666666; /* Dark gray color */
 }
 
 [data-theme="dark"] .user-icon .bi {
