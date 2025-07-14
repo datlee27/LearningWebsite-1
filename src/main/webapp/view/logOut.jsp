@@ -11,5 +11,5 @@
         }
     }
     session.invalidate(); // Hủy session
-    response.sendRedirect(request.getContextPath() + "/view/homePage.jsp"); // Chuyển hướng về trang chủ
+    response.sendRedirect(request.getContextPath() + "/homePage"); // Chuyển hướng về trang chủ
 %>

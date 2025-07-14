@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Lecture</title>
+    <title>Add Assignment</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -36,13 +36,13 @@
         .card-body {
             padding: 25px;
         }
-        .form-control {
+        .form-control, .form-select {
             border-radius: 8px;
             border: 1px solid #ced4da;
             padding: 10px;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .form-control:focus {
+        .form-control:focus, .form-select:focus {
             border-color: #007bff;
             box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
         }
@@ -75,34 +75,53 @@
     <div class="container">
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-camera-reels me-2"></i>Add New Lecture
+                <i class="bi bi-file-earmark-text me-2"></i>Add New Assignment
             </div>
             <div class="card-body">
                 <c:if test="${not empty param.error}">
                     <div class="alert alert-danger">${param.error}</div>
                 </c:if>
                 <c:if test="${param.success == 'true'}">
-                    <div class="alert alert-success">Lecture added successfully!</div>
+                    <div class="alert alert-success">Assignment added successfully!</div>
                 </c:if>
 
-                <h4>For Course ID: ${param.courseId}</h4>
-                <form action="${pageContext.request.contextPath}/addLecturesServlet" method="post">
+              
+                <form action="${pageContext.request.contextPath}/addAssignmentServlet" method="post">
                     <input type="hidden" name="courseId" value="${param.courseId}">
                     <div class="mb-3">
-                        <label for="lectureTitle" class="form-label">Lecture Title</label>
-                        <input type="text" class="form-control" id="lectureTitle" name="title" required>
-                        <div class="error-message" id="lectureTitleError">Lecture title is required.</div>
+                        <label for="lectureId" class="form-label"> Course Name</label>
+                        <select class="form-select" id="lectureId" name="idLecture">
+                            <option value="">None</option>
+                            <!-- Placeholder for lecture options, to be filled later -->
+                            <option value="1">Sample Lecture 1</option>
+                            <option value="2">Sample Lecture 2</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="lectureContent" class="form-label">Content</label>
-                        <textarea class="form-control" id="lectureContent" name="content" rows="3" required></textarea>
-                        <div class="error-message" id="lectureContentError">Content is required.</div>
+                        <label for="lectureId" class="form-label">Related Lecture (Optional)</label>
+                        <select class="form-select" id="lectureId" name="idLecture">
+                            <option value="">None</option>
+                            <!-- Placeholder for lecture options, to be filled later -->
+                            <option value="1">Sample Lecture 1</option>
+                            <option value="2">Sample Lecture 2</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="videoUrl" class="form-label">Video URL (Optional)</label>
-                        <input type="text" class="form-control" id="videoUrl" name="videoUrl">
+                        <label for="assignmentTitle" class="form-label">Assignment Title</label>
+                        <input type="text" class="form-control" id="assignmentTitle" name="title" required>
+                        <div class="error-message" id="assignmentTitleError">Assignment title is required.</div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Add Lecture</button>
+                    <div class="mb-3">
+                        <label for="assignmentDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="assignmentDescription" name="description" rows="3" required></textarea>
+                        <div class="error-message" id="assignmentDescriptionError">Description is required.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dueDate" class="form-label">Due Date</label>
+                        <input type="datetime-local" class="form-control" id="dueDate" name="dueDate" required>
+                        <div class="error-message" id="dueDateError">Due date is required.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Assignment</button>
                 </form>
             </div>
         </div>

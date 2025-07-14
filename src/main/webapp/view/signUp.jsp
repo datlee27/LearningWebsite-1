@@ -61,7 +61,7 @@
                     </form>
                     <!-- Google Sign-In Button -->
                    
-                    <p class="text-center">Already have an account? <a href="signin.jsp">Sign In</a></p>
+                    <p class="text-center">Already have an account? <a href="${pageContext.request.contextPath}/view/signIn.jsp">Sign In</a></p>
                 </div>
             </div>
         </div>

@@ -1,19 +1,17 @@
 package DAO;
 
-import Model.User;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Map;
+import Model.*;
 import org.mindrot.jbcrypt.BCrypt;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class DAO {
-    private DBcontext dbContext = new DBcontext();
+    private final DBcontext dbContext = new DBcontext();
     private static final Logger logger = Logger.getLogger(DAO.class.getName());
 
     public void save(User user) throws SQLException, Exception {
@@ -43,9 +41,23 @@ public class DAO {
                 }
             }
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
     }
 
@@ -91,32 +103,45 @@ public class DAO {
         } finally {
             if (rs != null) rs.close();
             if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (conn != null) dbContext.closeConnection(conn);
         }
         return null;
     }
+
 
     public User findByUsername(String username) throws SQLException, Exception {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
+
             conn = dbContext.getConnection();
-            String sql = "SELECT id, username, password, email, role, google_id FROM learning_management.Users WHERE username = ?";
-            logger.info("Retrieving user by username: " + username);
+            String sql = "SELECT id, username, password, email, role, google_id FROM learning_management.Users WHERE username = ?;";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
             rs = pstmt.executeQuery();
             if (rs.next()) {
                 return mapToUser(rs);
-            } else {
-                logger.warning("No user found for username: " + username);
-                return null;
             }
+            return null;
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
     }
 
@@ -126,19 +151,33 @@ public class DAO {
         ResultSet rs = null;
         try {
             conn = dbContext.getConnection();
-            String sql = "SELECT id, username, password, email, role, google_id FROM learning_management.Users WHERE google_id = ?";
+            String sql = "SELECT id, username, password, email, role, google_id FROM learning_management.Users WHERE google_id = ?;";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, googleId);
             rs = pstmt.executeQuery();
             if (rs.next()) {
                 return mapToUser(rs);
             }
+            return null;
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
-        return null;
     }
 
     public void logLogin(String username) throws SQLException, Exception {
@@ -146,13 +185,21 @@ public class DAO {
         PreparedStatement pstmt = null;
         try {
             conn = dbContext.getConnection();
-            String sql = "INSERT INTO user_activity (username, login_time) VALUES (?, NOW())";
-            pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            String sql = "INSERT INTO user_activity (username, login_time) VALUES (?, NOW());";
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
             pstmt.executeUpdate();
         } finally {
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
     }
 
@@ -161,17 +208,21 @@ public class DAO {
         PreparedStatement pstmt = null;
         try {
             conn = dbContext.getConnection();
-            String sql = "UPDATE user_activity SET logout_time = NOW(), duration_minutes = TIMESTAMPDIFF(MINUTE, login_time, NOW()) " +
-                         "WHERE username = ? AND logout_time IS NULL";
+            String sql = "UPDATE user_activity SET logout_time = NOW(), duration_minutes = TIMESTAMPDIFF(MINUTE, login_time, NOW()) WHERE username = ? AND logout_time IS NULL;";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
-            int rowsUpdated = pstmt.executeUpdate();
-            if (rowsUpdated == 0) {
-                logger.warning("No active session found to log out for username: " + username);
-            }
+            pstmt.executeUpdate();
         } finally {
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
     }
 
@@ -182,9 +233,7 @@ public class DAO {
         ResultSet rs = null;
         try {
             conn = dbContext.getConnection();
-            String sql = "SELECT DATE(login_time) as activity_date, COALESCE(SUM(duration_minutes), 0) as total_minutes " +
-                         "FROM user_activity WHERE username = ? AND login_time >= DATE_SUB(NOW(), INTERVAL 30 DAY) " +
-                         "GROUP BY DATE(login_time)";
+            String sql = "SELECT DATE(login_time) as activity_date, COALESCE(SUM(duration_minutes), 0) as total_minutes FROM user_activity WHERE username = ? AND login_time >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY DATE(login_time);";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
             rs = pstmt.executeQuery();
@@ -193,59 +242,71 @@ public class DAO {
                 int minutes = rs.getInt("total_minutes");
                 onlineTimes.put(date, minutes);
             }
+            return onlineTimes;
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
-        return onlineTimes;
-    }
-
-    private User mapToUser(ResultSet rs) throws SQLException {
-        User user = new User();
-        user.setId(rs.getInt("id"));
-        user.setUsername(rs.getString("username"));
-        user.setPassword(rs.getString("password"));
-        user.setEmail(rs.getString("email"));
-        user.setRole(rs.getString("role"));
-        user.setGoogleId(rs.getString("google_id"));
-        return user;
     }
 
     public int getTotalActivityForDate(String username, String date) throws SQLException, Exception {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        int totalMinutes = 0;
         try {
             conn = dbContext.getConnection();
-            String sql = "SELECT COALESCE(SUM(duration_minutes), 0) as total_minutes " +
-                        "FROM user_activity WHERE username = ? AND DATE(login_time) = ?";
+            String sql = "SELECT COALESCE(SUM(duration_minutes), 0) as total_minutes FROM user_activity WHERE username = ? AND DATE(login_time) = ?;";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, username);
             pstmt.setString(2, date);
             rs = pstmt.executeQuery();
             if (rs.next()) {
-                totalMinutes = rs.getInt("total_minutes");
+                return rs.getInt("total_minutes");
             }
+            return 0;
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
-        return totalMinutes;
     }
 
-
-    
-     public int saveCourse(String name, String description, int teacherId) throws SQLException, Exception {
+    public int saveCourse(String name, String description, int teacherId) throws SQLException, Exception {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet generatedKeys = null;
-        int courseId = -1;
         try {
             conn = dbContext.getConnection();
-            String sql = "INSERT INTO learning_management.Courses (name, description, teacher_id) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO learning_management.Courses (name, description, teacher_id) VALUES (?, ?, ?);";
             pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, name);
             pstmt.setString(2, description);
@@ -258,32 +319,44 @@ public class DAO {
 
             try (ResultSet keys = pstmt.getGeneratedKeys()) {
                 if (keys.next()) {
-                    courseId = keys.getInt(1);
+                    return keys.getInt(1);
                 } else {
                     throw new SQLException("Creating course failed, no ID obtained.");
                 }
             }
         } finally {
-            if (generatedKeys != null) generatedKeys.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (generatedKeys != null) {
+                try {
+                    generatedKeys.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
-        return courseId;
     }
-     
-     public int saveLecture(int courseId, String title, String content, String videoUrl) throws SQLException, Exception {
+
+    public int saveLecture(int courseId, String title, String content, String videoUrl) throws SQLException, Exception {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet generatedKeys = null;
-        int lectureId = -1;
         try {
             conn = dbContext.getConnection();
-            String sql = "INSERT INTO learning_management.Lectures (course_id, title, content, video_url) VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO learning_management.Lectures (course_id, title, content, video_url, status) VALUES (?, ?, ?, ?, 'active');";
             pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setInt(1, courseId);
             pstmt.setString(2, title);
             pstmt.setString(3, content);
-            pstmt.setString(4, videoUrl != null ? videoUrl : ""); // Handle null video_url
+            pstmt.setString(4, videoUrl != null ? videoUrl : "");
             int affectedRows = pstmt.executeUpdate();
 
             if (affectedRows == 0) {
@@ -292,32 +365,49 @@ public class DAO {
 
             try (ResultSet keys = pstmt.getGeneratedKeys()) {
                 if (keys.next()) {
-                    lectureId = keys.getInt(1);
+                    return keys.getInt(1);
                 } else {
                     throw new SQLException("Creating lecture failed, no ID obtained.");
                 }
             }
         } finally {
-            if (generatedKeys != null) generatedKeys.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (generatedKeys != null) {
+                try {
+                    generatedKeys.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
-        return lectureId;
     }
 
-    public int saveAssignment(int courseId, String title, String description, String dueDate) throws SQLException, Exception {
+    public int saveAssignment(int courseId, Integer idLecture, String title, String description, String dueDate) throws SQLException, Exception {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet generatedKeys = null;
-        int assignmentId = -1;
         try {
             conn = dbContext.getConnection();
-            String sql = "INSERT INTO learning_management.Assignments (course_id, title, description, due_date) VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO learning_management.Assignments (course_id, id_lecture, title, description, due_date, status) VALUES (?, ?, ?, ?, ?, 'active');";
             pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setInt(1, courseId);
-            pstmt.setString(2, title);
-            pstmt.setString(3, description);
-            pstmt.setTimestamp(4, Timestamp.valueOf(dueDate)); // Convert String to Timestamp
+            if (idLecture != null && idLecture > 0) {
+                pstmt.setInt(2, idLecture);
+            } else {
+                pstmt.setNull(2, Types.INTEGER);
+            }
+            pstmt.setString(3, title);
+            pstmt.setString(4, description);
+            pstmt.setTimestamp(5, Timestamp.valueOf(dueDate));
             int affectedRows = pstmt.executeUpdate();
 
             if (affectedRows == 0) {
@@ -326,16 +416,103 @@ public class DAO {
 
             try (ResultSet keys = pstmt.getGeneratedKeys()) {
                 if (keys.next()) {
-                    assignmentId = keys.getInt(1);
+                    return keys.getInt(1);
                 } else {
                     throw new SQLException("Creating assignment failed, no ID obtained.");
                 }
             }
         } finally {
-            if (generatedKeys != null) generatedKeys.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) dbContext.closeConnection();
+            if (generatedKeys != null) {
+                try {
+                    generatedKeys.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close ResultSet: " + e.getMessage());
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
+                }
+            }
+            if (conn != null) {
+                dbContext.closeConnection(conn);
+            }
         }
-        return assignmentId;
+    }
+
+    public List<Course> getCourses() throws SQLException, Exception {
+    List<Course> courses = new ArrayList<>();
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    try {
+        conn = dbContext.getConnection();
+        String sql = "SELECT id, name, description, teacher_id FROM learning_management.Courses;";
+        pstmt = conn.prepareStatement(sql);
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            Course course = new Course(
+                rs.getString("name"),
+                rs.getString("description"),
+                rs.getInt("teacher_id")
+            );
+            course.setIdCourse(rs.getInt("id"));  // ✅ sửa đúng tên cột
+            courses.add(course);
+        }
+
+        for (Course course : courses) {
+            // Get Lectures
+            sql = "SELECT * FROM learning_management.Lectures WHERE course_id = ?;";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, course.getIdCourse());
+            rs = pstmt.executeQuery();
+            List<Lecture> lectures = new ArrayList<>();
+            while (rs.next()) {
+                Lecture lecture = new Lecture(course.getIdCourse(), rs.getString("title"), rs.getString("video_url"), rs.getString("status"));
+                lecture.setIdLecture(rs.getInt("idLecture"));
+                lectures.add(lecture);
+            }
+            course.setLectures(lectures);
+
+            // Get Assignments
+            sql = "SELECT * FROM learning_management.Assignments WHERE course_id = ?;";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, course.getIdCourse());
+            rs = pstmt.executeQuery();
+            List<Assignments> assignments = new ArrayList<>();
+            while (rs.next()) {
+                Assignments assignment = new Assignments(
+                    course.getIdCourse(),
+                    rs.getInt("id_lecture") > 0 ? rs.getInt("id_lecture") : null,
+                    rs.getString("title"),
+                    rs.getString("description"),
+                    new com.google.api.client.util.DateTime(rs.getTimestamp("due_date")),
+                    rs.getString("status")
+                );
+                assignment.setIdAss(rs.getInt("idAss"));
+                assignments.add(assignment);
+            }
+            course.setAssignments(assignments);
+        }
+        return courses;
+    } finally {
+        if (rs != null) rs.close();
+        if (pstmt != null) pstmt.close();
+        if (conn != null) dbContext.closeConnection(conn);
+    }
+}
+
+
+    private User mapToUser(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setId(rs.getInt("id"));
+        user.setUsername(rs.getString("username"));
+        user.setPassword(rs.getString("password"));
+        user.setEmail(rs.getString("email"));
+        user.setRole(rs.getString("role"));
+        user.setGoogleId(rs.getString("google_id"));
+        return user;
     }
 }

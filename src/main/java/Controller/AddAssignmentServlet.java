@@ -1,15 +1,17 @@
 package Controller;
 
+
 import DAO.DAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
+
 
 public class AddAssignmentServlet extends HttpServlet {
     private static final Logger logger = Logger.getLogger(AddAssignmentServlet.class.getName());
@@ -25,6 +27,8 @@ public class AddAssignmentServlet extends HttpServlet {
         }
 
         int courseId = Integer.parseInt(request.getParameter("courseId"));
+        String idLectureParam = request.getParameter("idLecture");
+        Integer idLecture = (idLectureParam != null && !idLectureParam.isEmpty()) ? Integer.parseInt(idLectureParam) : null;
         String title = request.getParameter("title");
         String description = request.getParameter("description");
         String dueDate = request.getParameter("dueDate"); // Format: yyyy-MM-ddTHH:mm
@@ -36,10 +40,7 @@ public class AddAssignmentServlet extends HttpServlet {
         }
 
         try {
-            // Convert dueDate string to proper format if needed
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-            sdf.setLenient(false);
-            dao.saveAssignment(courseId, title, description, dueDate);
+            dao.saveAssignment(courseId, idLecture, title, description, dueDate);
             logger.info("Assignment added successfully for course ID: " + courseId);
             response.sendRedirect(request.getContextPath() + "/view/addLectures.jsp?courseId=" + courseId + "&success=true");
         } catch (SQLException e) {
@@ -56,6 +57,6 @@ public class AddAssignmentServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect(request.getContextPath() + "/view/addLectures.jsp");
+        response.sendRedirect(request.getContextPath() + "/view/addAssignment.jsp");
     }
 }

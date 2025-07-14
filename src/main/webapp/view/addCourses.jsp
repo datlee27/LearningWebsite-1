@@ -7,28 +7,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Course</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Font Awesome for Book Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/homePage.css"/>
-    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation Menu -->
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="${pageContext.request.contextPath}/homePage">
+            <a class="navbar-brand" href="${pageContext.request.contextPath}/view/index.jsp">
                 <div class="book-icon-container">
                     <i class="fas fa-book-open book-icon"></i>
                     <div class="play-button" onclick="alert('Quay về trang chủ!')">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     </div>
                 </div>
             </a>
@@ -37,33 +29,18 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/homePage">Home</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/index.jsp">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/courseList">Course List</a></li>
                     <% String role = (String) session.getAttribute("role"); %>
                     <% if ("teacher".equals(role)) { %>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="${pageContext.request.contextPath}/view/addCourses.jsp">Add Course</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="${pageContext.request.contextPath}/view/gradeAssignments.jsp">Grade Assignments</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="${pageContext.request.contextPath}/view/studentList.jsp">Student List</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link active" href="${pageContext.request.contextPath}/view/addCourses.jsp">Add Course</a></li>
+                        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/gradeAssignments.jsp">Grade Assignments</a></li>
+                        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/studentList.jsp">Student List</a></li>
                     <% } else { %>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Courses</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Roadmap</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Practice</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/roadmap.jsp">Roadmap</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Practice</a></li>
                     <% } %>
                 </ul>
-                <!-- User Profile, Sign In, Sign Up, Logout, and Theme Toggle -->
                 <div class="d-flex align-items-center">
                     <% if (session.getAttribute("username") == null) { %>
                         <a href="${pageContext.request.contextPath}/view/signIn.jsp" class="btn btn-outline-primary me-2">Sign In</a>
@@ -76,7 +53,7 @@
                             <div class="dropdown-menu">
                                 <a href="${pageContext.request.contextPath}/view/profile.jsp"><i class="bi bi-person-fill me-2"></i>Profile</a>
                                 <a href="${pageContext.request.contextPath}/view/settings.jsp"><i class="bi bi-gear-fill me-2"></i>Settings</a>
-                                <a href="${pageContext.request.contextPath}/view/logOut.jsp"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+                                <a href="${pageContext.request.contextPath}/logOut"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
                             </div>
                         </div>
                     <% } %>
@@ -88,14 +65,13 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <div class="container mt-4">
         <h2>Add New Course</h2>
         <% 
             String username = (String) session.getAttribute("username");
             if (username != null && "teacher".equals(session.getAttribute("role"))) {
                 DAO dao = new DAO();
-                User user = dao.findByUsername(username); // Use new method
+                User user = dao.findByUsername(username);
                 if (user != null) {
         %>
             <form action="${pageContext.request.contextPath}/addCourseServlet" method="post">
@@ -120,20 +96,16 @@
         %>
     </div>
 
-    <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Theme Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const toggleButton = document.getElementById('theme-toggle');
             const htmlElement = document.documentElement;
             const currentTheme = localStorage.getItem('theme') || 'light';
 
-            // Set initial theme
             htmlElement.setAttribute('data-theme', currentTheme);
             updateToggleIcon(currentTheme);
 
-            // Toggle theme on button click
             toggleButton.addEventListener('click', () => {
                 const newTheme = htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
                 htmlElement.setAttribute('data-theme', newTheme);

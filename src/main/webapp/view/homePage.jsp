@@ -39,9 +39,9 @@
                             <a class="nav-link active" href="#">Home</a>
                         </li>
                         <% String role = (String) session.getAttribute("role"); %>
-                        <% if ("teacher".equals(role)) { %>
+                        <% if ("teacher".equals(role)) { %>                         
                             <li class="nav-item">
-                                <a class="nav-link" href="${pageContext.request.contextPath}/view/addCourses.jsp">Add Course</a>
+                                <a class="nav-link" href="${pageContext.request.contextPath}/view/courseList.jsp">Course List </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="${pageContext.request.contextPath}/view/gradeAssignments.jsp">Grade Assignments</a>

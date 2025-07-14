@@ -43,7 +43,7 @@
                         </div>
                         <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular"></div>
                     </div>
-                    <p class="text-center">Don't have an account? <a href="signup.jsp">Sign Up</a></p>
+                    <p class="text-center">Don't have an account? <a href="${pageContext.request.contextPath}/view/signUp.jsp">Sign Up</a></p>
                 </div>
             </div>
         </div>

@@ -32,7 +32,7 @@ public class DBcontext {
         return DriverManager.getConnection(url, user, password);
     }
     // Close the connection (optional, for manual cleanup if needed)
-    public void closeConnection() throws SQLException {
+    public void closeConnection(Connection conn) throws SQLException {
         if (conn != null && !conn.isClosed()) {
             conn.close();
         }

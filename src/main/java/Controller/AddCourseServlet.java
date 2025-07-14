@@ -2,13 +2,16 @@ package Controller;
 
 import DAO.DAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public class AddCourseServlet extends HttpServlet {
     private static final Logger logger = Logger.getLogger(AddCourseServlet.class.getName());
@@ -34,17 +37,17 @@ public class AddCourseServlet extends HttpServlet {
         }
 
         try {
-            int courseId = dao.saveCourse(name, description, teacherId); // Get the generated course ID
-            logger.info("Course added successfully by teacher ID: " + teacherId + ", Course ID: " + courseId);
-            response.sendRedirect(request.getContextPath() + "/view/addLectures.jsp?courseId=" + courseId);
+           int newCourseId = dao.saveCourse(name, description, teacherId);
+            logger.info("Course added successfully by teacher ID: " + teacherId);
+            // Redirect kèm courseId sang addLectures.jsp
+            response.sendRedirect(request.getContextPath() + "/view/addLectures.jsp?courseId=" + newCourseId);
+
         } catch (SQLException e) {
             logger.severe("Database error while adding course: " + e.getMessage());
             request.setAttribute("error", "Failed to add course: " + e.getMessage());
             request.getRequestDispatcher("/view/addCourses.jsp").forward(request, response);
-        } catch (Exception e) {
-            logger.severe("Unexpected error while adding course: " + e.getMessage());
-            request.setAttribute("error", "An unexpected error occurred: " + e.getMessage());
-            request.getRequestDispatcher("/view/addCourses.jsp").forward(request, response);
+        } catch (Exception ex) {
+            Logger.getLogger(AddCourseServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

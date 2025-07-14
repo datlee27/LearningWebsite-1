@@ -2,13 +2,16 @@ package Controller;
 
 import DAO.DAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public class AddLecturesServlet extends HttpServlet {
     private static final Logger logger = Logger.getLogger(AddLecturesServlet.class.getName());
@@ -42,10 +45,8 @@ public class AddLecturesServlet extends HttpServlet {
             logger.severe("Database error while adding lecture: " + e.getMessage());
             request.setAttribute("error", "Failed to add lecture: " + e.getMessage());
             request.getRequestDispatcher("/view/addLectures.jsp?courseId=" + courseId).forward(request, response);
-        } catch (Exception e) {
-            logger.severe("Unexpected error while adding lecture: " + e.getMessage());
-            request.setAttribute("error", "An unexpected error occurred: " + e.getMessage());
-            request.getRequestDispatcher("/view/addLectures.jsp?courseId=" + courseId).forward(request, response);
+        } catch (Exception ex) {
+            Logger.getLogger(AddLecturesServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
