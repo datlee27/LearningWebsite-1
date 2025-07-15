@@ -1,3 +1,4 @@
+CREATE DATABASE learning_managemment;
 
 USE learning_management;
 
