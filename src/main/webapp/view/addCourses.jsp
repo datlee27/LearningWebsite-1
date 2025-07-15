@@ -1,123 +1,127 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="DAO.DAO" %>
-<%@ page import="Model.User" %>
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
+<%@ page import="java.sql.*, java.util.*" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Course</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/homePage.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Courses Management</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="${pageContext.request.contextPath}/view/index.jsp">
-                <div class="book-icon-container">
-                    <i class="fas fa-book-open book-icon"></i>
-                    <div class="play-button" onclick="alert('Quay về trang chủ!')">
-                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+<div class="container mt-5">
+    <h1>Courses</h1>
+    <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">Add Course</button>
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        <%
+            // JDBC connection
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/YOUR_DB", "USERNAME", "PASSWORD");
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM Courses");
+            while (rs.next()) {
+        %>
+            <tr>
+                <td><%= rs.getInt("id") %></td>
+                <td><%= rs.getString("name") %></td>
+                <td><%= rs.getString("description") %></td>
+                <td>
+                    <button class="btn btn-warning editBtn" 
+                            data-id="<%= rs.getInt("id") %>" 
+                            data-name="<%= rs.getString("name") %>" 
+                            data-description="<%= rs.getString("description") %>">Edit</button>
+                    <form action="CourseServlet" method="post" style="display:inline;">
+                        <input type="hidden" name="action" value="delete"/>
+                        <input type="hidden" name="id" value="<%= rs.getInt("id") %>"/>
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this course?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        <%
+            }
+            rs.close();
+            st.close();
+            con.close();
+        %>
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <form action="CourseServlet" method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Course</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="add"/>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="name" class="form-control" required/>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description" class="form-control"/>
                     </div>
                 </div>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/index.jsp">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/courseList">Course List</a></li>
-                    <% String role = (String) session.getAttribute("role"); %>
-                    <% if ("teacher".equals(role)) { %>
-                        <li class="nav-item"><a class="nav-link active" href="${pageContext.request.contextPath}/view/addCourses.jsp">Add Course</a></li>
-                        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/gradeAssignments.jsp">Grade Assignments</a></li>
-                        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/studentList.jsp">Student List</a></li>
-                    <% } else { %>
-                        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/view/roadmap.jsp">Roadmap</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Practice</a></li>
-                    <% } %>
-                </ul>
-                <div class="d-flex align-items-center">
-                    <% if (session.getAttribute("username") == null) { %>
-                        <a href="${pageContext.request.contextPath}/view/signIn.jsp" class="btn btn-outline-primary me-2">Sign In</a>
-                        <a href="${pageContext.request.contextPath}/view/signUp.jsp" class="btn btn-outline-success me-2">Sign Up</a>
-                    <% } else { %>
-                        <div class="user-icon position-relative">
-                            <button class="btn btn-outline-primary me-2" style="border: none; background: none;">
-                                <i class="bi bi-person-circle"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a href="${pageContext.request.contextPath}/view/profile.jsp"><i class="bi bi-person-fill me-2"></i>Profile</a>
-                                <a href="${pageContext.request.contextPath}/view/settings.jsp"><i class="bi bi-gear-fill me-2"></i>Settings</a>
-                                <a href="${pageContext.request.contextPath}/logOut"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
-                            </div>
-                        </div>
-                    <% } %>
-                    <button id="theme-toggle" class="btn btn-outline-secondary" title="Toggle Theme">
-                        <i class="bi bi-sun-fill"></i>
-                    </button>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-        <h2>Add New Course</h2>
-        <% 
-            String username = (String) session.getAttribute("username");
-            if (username != null && "teacher".equals(session.getAttribute("role"))) {
-                DAO dao = new DAO();
-                User user = dao.findByUsername(username);
-                if (user != null) {
-        %>
-            <form action="${pageContext.request.contextPath}/addCourseServlet" method="post">
-                <div class="mb-3">
-                    <label for="courseName" class="form-label">Course Name</label>
-                    <input type="text" class="form-control" id="courseName" name="name" required>
-                </div>
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
-                </div>
-                <input type="hidden" name="teacher_id" value="<%= user.getId() %>">
-                <button type="submit" class="btn btn-primary">Add Course</button>
-            </form>
-        <% 
-                } else {
-                    out.println("<p class='text-danger'>Error: Unable to retrieve user information.</p>");
-                }
-            } else {
-                out.println("<p class='text-danger'>Please log in as a teacher to add a course.</p>");
-            }
-        %>
+        </form>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggleButton = document.getElementById('theme-toggle');
-            const htmlElement = document.documentElement;
-            const currentTheme = localStorage.getItem('theme') || 'light';
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <form action="CourseServlet" method="post">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Course</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="edit"/>
+                    <input type="hidden" name="id" id="edit-id"/>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" name="name" id="edit-name" class="form-control" required/>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description" id="edit-description" class="form-control"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
-            htmlElement.setAttribute('data-theme', currentTheme);
-            updateToggleIcon(currentTheme);
-
-            toggleButton.addEventListener('click', () => {
-                const newTheme = htmlElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-                htmlElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateToggleIcon(newTheme);
-            });
-
-            function updateToggleIcon(theme) {
-                const icon = toggleButton.querySelector('i');
-                icon.className = theme === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-            }
-        });
-    </script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Handle Edit Button Click
+    $('.editBtn').on('click', function() {
+        $('#edit-id').val($(this).data('id'));
+        $('#edit-name').val($(this).data('name'));
+        $('#edit-description').val($(this).data('description'));
+        $('#editModal').modal('show');
+    });
+</script>
 </body>
 </html>
