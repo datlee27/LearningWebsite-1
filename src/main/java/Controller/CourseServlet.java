@@ -1,9 +1,7 @@
 package controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 import dao.CourseDAO;
 import jakarta.servlet.ServletException;
@@ -11,50 +9,72 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import model.Course;
+import model.User;
 
-@WebServlet(name = "Course", urlPatterns = {"/course"})
+@WebServlet(name = "CourseServlet", urlPatterns = {"/courses"})
 public class CourseServlet extends HttpServlet {
-    private static final Logger logger = Logger.getLogger(CourseServlet.class.getName());
-    private final CourseDAO dao = new CourseDAO();
+    private final CourseDAO courseDAO = new CourseDAO();
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || !"teacher".equals(session.getAttribute("role"))) {
-            response.sendRedirect(request.getContextPath() + "/view/signIn.jsp");
-            return;
-        }
-
-        String name = request.getParameter("name");
-        String description = request.getParameter("description");
-        int teacherId = Integer.parseInt(request.getParameter("teacher_id"));
-
-        if (name == null || name.trim().isEmpty() || description == null || description.trim().isEmpty()) {
-            request.setAttribute("error", "Course name and description are required.");
-            request.getRequestDispatcher("/view/addCourses.jsp").forward(request, response);
-            return;
-        }
-
-        try {
-           int newCourseId = dao.saveCourse(name, description, teacherId);
-            logger.info("Course added successfully by teacher ID: " + teacherId);
-            // Redirect kèm courseId sang addLectures.jsp
-            response.sendRedirect(request.getContextPath() + "/view/addLectures.jsp?courseId=" + newCourseId);
-
-        } catch (SQLException e) {
-            logger.severe("Database error while adding course: " + e.getMessage());
-            request.setAttribute("error", "Failed to add course: " + e.getMessage());
-            request.getRequestDispatcher("/view/addCourses.jsp").forward(request, response);
-        } catch (Exception ex) {
-            Logger.getLogger(CourseServlet.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        List<Course> courses = courseDAO.getCourses();
+        request.setAttribute("courses", courses);
+        request.getRequestDispatcher("/view/courses.jsp").forward(request, response);
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        response.sendRedirect(request.getContextPath() + "/view/addCourses.jsp");
+        String action = request.getParameter("action");
+        if (action == null) {
+            action = "create"; // Default action
+        }
+
+        try {
+            switch (action) {
+                case "update":
+                    updateCourse(request);
+                    break;
+                case "delete":
+                    deleteCourse(request);
+                    break;
+                default:
+                    createCourse(request);
+                    break;
+            }
+        } catch (Exception e) {
+            throw new ServletException("Error processing course action: " + action, e);
+        }
+        response.sendRedirect(request.getContextPath() + "/courses");
+    }
+
+    private void createCourse(HttpServletRequest request) {
+        String name = request.getParameter("name");
+        String description = request.getParameter("description");
+        User user = (User) request.getSession().getAttribute("user");
+        int teacherId = user.getId();
+        
+        Course course = new Course(name, description, teacherId);
+        courseDAO.saveCourse(course);
+    }
+
+    private void updateCourse(HttpServletRequest request) {
+        int courseId = Integer.parseInt(request.getParameter("courseId"));
+        String name = request.getParameter("name");
+        String description = request.getParameter("description");
+        
+        Course course = courseDAO.findCourseById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid course ID:" + courseId));
+        
+        course.setName(name);
+        course.setDescription(description);
+        courseDAO.updateCourse(course);
+    }
+
+    private void deleteCourse(HttpServletRequest request) {
+        int courseId = Integer.parseInt(request.getParameter("courseId"));
+        courseDAO.deleteCourse(courseId);
     }
 }

@@ -2,9 +2,13 @@ package model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -14,14 +18,22 @@ public class Lecture {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idLecture;
 
-    @Column(name = "course_id")
-    private int idCourse;
+    // The primitive idCourse field is replaced with a direct object relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @Column(name = "title")
     private String title;
 
     @Column(name = "video_url")
     private String videoUrl;
+    
+    // Note: The original DAO had a 'content' parameter in saveLecture, 
+    // but the entity was missing this field. I've added it here.
+    @Lob // Use @Lob for potentially large text fields
+    @Column(name = "content")
+    private String content;
 
     @Column(name = "status")
     private String status;
@@ -29,12 +41,16 @@ public class Lecture {
     public Lecture() {
     }
 
-    public Lecture(int idCourse, String title, String videoUrl, String status) {
-        this.idCourse = idCourse;
+    // Constructor updated to accept a Course object
+    public Lecture(Course course, String title, String content, String videoUrl, String status) {
+        this.course = course;
         this.title = title;
+        this.content = content;
         this.videoUrl = videoUrl;
         this.status = status;
     }
+
+    // --- Getters and Setters ---
 
     public int getIdLecture() {
         return idLecture;
@@ -44,12 +60,12 @@ public class Lecture {
         this.idLecture = idLecture;
     }
 
-    public int getIdCourse() {
-        return idCourse;
+    public Course getCourse() {
+        return course;
     }
 
-    public void setIdCourse(int idCourse) {
-        this.idCourse = idCourse;
+    public void setCourse(Course course) {
+        this.course = course;
     }
 
     public String getTitle() {
@@ -58,6 +74,14 @@ public class Lecture {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+    
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public String getVideoUrl() {
@@ -74,16 +98,5 @@ public class Lecture {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    @Override
-    public String toString() {
-        return "Lecture{" +
-               "idLecture=" + idLecture +
-               ", idCourse=" + idCourse +
-               ", title=" + title +
-               ", videoUrl=" + videoUrl +
-               ", status=" + status +
-               '}';
     }
 }

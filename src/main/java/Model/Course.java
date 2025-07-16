@@ -6,6 +6,7 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,6 +18,7 @@ import jakarta.persistence.Table;
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id") // Matching the column name 'id' from your DAO's SQL query
     private int idCourse;
     
     @Column(name = "name")
@@ -28,21 +30,24 @@ public class Course {
     @Column(name = "teacher_id")
     private int idTeacher;
 
-    @OneToMany(mappedBy = "idCourse", cascade = CascadeType.ALL)
+    // Correct: mappedBy points to the 'course' field in the Lecture entity
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Lecture> lectures = new ArrayList<>();
 
-    @OneToMany(mappedBy = "idCourse", cascade = CascadeType.ALL)
+    // Correct: mappedBy points to the 'course' field in the Assignment entity
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Assignment> assignments = new ArrayList<>();
 
-    public Course() {
-    }
+    // Constructors, Getters, and Setters remain the same...
+    public Course() {}
 
     public Course(String name, String description, int idTeacher) {
         this.name = name;
         this.description = description;
         this.idTeacher = idTeacher;
     }
-
+    
+    // ... other getters and setters
     public int getIdCourse() {
         return idCourse;
     }

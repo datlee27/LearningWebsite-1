@@ -162,4 +162,9 @@ public class User {
     public void setSchool(String value) {
       this.school = value;
     }
+
+    public User orElseThrow(Object object) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'orElseThrow'");
+    }
 }

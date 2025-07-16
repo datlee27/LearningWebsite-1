@@ -6,9 +6,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -20,8 +23,9 @@ public class Assignment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idAss;
 
-    @Column(name = "course_id")
-    private int idCourse;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @Column(name = "lecture_id")
     private Integer idLecture;
@@ -43,8 +47,8 @@ public class Assignment {
     public Assignment() {
     }
 
-    public Assignment(int idCourse, Integer idLecture, String title, String description, LocalDateTime dueDate, String status) {
-        this.idCourse = idCourse;
+    public Assignment(Course course, Integer idLecture, String title, String description, LocalDateTime dueDate, String status) {
+        this.course = course;
         this.idLecture = idLecture;
         this.title = title;
         this.description = description;
@@ -60,12 +64,12 @@ public class Assignment {
         this.idAss = idAss;
     }
 
-    public int getIdCourse() {
-        return idCourse;
+    public Course getCourse() {
+        return course;
     }
 
-    public void setIdCourse(int idCourse) {
-        this.idCourse = idCourse;
+    public void setCourse(Course course) {
+        this.course = course;
     }
 
     public Integer getIdLecture() {
@@ -106,18 +110,5 @@ public class Assignment {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    @Override
-    public String toString() {
-        return "Assignments{" +
-               "idAss=" + idAss +
-               ", idCourse=" + idCourse +
-               ", idLecture=" + idLecture +
-               ", title=" + title +
-               ", description=" + description +
-               ", dueDate=" + dueDate +
-               ", status=" + status +
-               '}';
     }
 }

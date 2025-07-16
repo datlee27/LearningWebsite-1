@@ -1,134 +1,82 @@
 package dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.TypedQuery;
+import model.User;
+import model.UserActivity;
 
 public class ActivityDAO {
-    private final DBConnection DBConnection = new DBConnection();
-    private static final Logger logger = Logger.getLogger(ActivityDAO.class.getName());
 
-    public void logLogin(String username) throws SQLException, Exception {
-        Connection conn = null;
-        PreparedStatement pstmt = null;
+    public void logLogin(User user) {
+        UserActivity activity = new UserActivity();
+        activity.setUser(user);
+        activity.setLoginTime(LocalDateTime.now());
+        activity.setLogoutTime(null); // Logout time is null at login
+        activity.setDurationMinutes(0L); // Duration is 0 at login
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
         try {
-            conn = DBConnection.getConnection();
-            String sql = "INSERT INTO user_activity (username, login_time) VALUES (?, NOW());";
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username);
-            pstmt.executeUpdate();
+            transaction.begin();
+            em.persist(activity);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.isActive()) transaction.rollback();
+            throw new RuntimeException("Could not log login activity", e);
         } finally {
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
-                }
-            }
-            if (conn != null) {
-                DBConnection.closeConnection(conn);
-            }
+            em.close();
+        }
+    }
+    
+    // Additional methods for logout and activity reporting would be added here
+    public void logLogout(User user) {
+        UserActivity activity = new UserActivity();
+        activity.setUser(user);
+        activity.setLoginTime(LocalDateTime.now());
+        activity.setLogoutTime(LocalDateTime.now());
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            em.persist(activity);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.isActive()) transaction.rollback();
+            throw new RuntimeException("Could not log logout activity", e);
+        } finally {
+            em.close();
         }
     }
 
-    public void logLogout(String username) throws SQLException, Exception {
-        Connection conn = null;
-        PreparedStatement pstmt = null;
+    public List<UserActivity> getUserActivities(User user) {
+        EntityManager em = JPAUtil.getEntityManager();
         try {
-            conn = DBConnection.getConnection();
-            String sql = "UPDATE user_activity SET logout_time = NOW(), duration_minutes = TIMESTAMPDIFF(MINUTE, login_time, NOW()) WHERE username = ? AND logout_time IS NULL;";
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username);
-            pstmt.executeUpdate();
+            TypedQuery<UserActivity> query = em.createQuery("SELECT ua FROM UserActivity ua WHERE ua.user = :user", UserActivity.class);
+            query.setParameter("user", user);
+            return query.getResultList();
         } finally {
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
-                }
-            }
-            if (conn != null) {
-                DBConnection.closeConnection(conn);
-            }
+            em.close();
         }
     }
 
-    public Map<String, Integer> getUserActivity(String username) throws SQLException, Exception {
-        Map<String, Integer> onlineTimes = new HashMap<>();
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
+    public int getTotalActivityForDate(String username, String today) {
+        EntityManager em = JPAUtil.getEntityManager();
         try {
-            conn = DBConnection.getConnection();
-            String sql = "SELECT DATE(login_time) as activity_date, COALESCE(SUM(duration_minutes), 0) as total_minutes FROM user_activity WHERE username = ? AND login_time >= DATE_SUB(NOW(), INTERVAL 30 DAY) GROUP BY DATE(login_time);";
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username);
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                String date = rs.getString("activity_date");
-                int minutes = rs.getInt("total_minutes");
-                onlineTimes.put(date, minutes);
-            }
-            return onlineTimes;
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(ua) FROM UserActivity ua WHERE ua.user = :username AND DATE(ua.loginTime) = :today",
+                Long.class
+            );
+            query.setParameter("username", username);
+            query.setParameter("today", today);
+            Long count = query.getSingleResult();
+            return count != null ? count.intValue() : 0;
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    logger.warning("Failed to close ResultSet: " + e.getMessage());
-                }
-            }
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
-                }
-            }
-            if (conn != null) {
-                DBConnection.closeConnection(conn);
-            }
+            em.close();
         }
-    }
-
-    public int getTotalActivityForDate(String username, String date) throws SQLException, Exception {
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            conn = DBConnection.getConnection();
-            String sql = "SELECT COALESCE(SUM(duration_minutes), 0) as total_minutes FROM user_activity WHERE username = ? AND DATE(login_time) = ?;";
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username);
-            pstmt.setString(2, date);
-            rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("total_minutes");
-            }
-            return 0;
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    logger.warning("Failed to close ResultSet: " + e.getMessage());
-                }
-            }
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    logger.warning("Failed to close PreparedStatement: " + e.getMessage());
-                }
-            }
-            if (conn != null) {
-                DBConnection.closeConnection(conn);
-            }
-        }
-    }
+    }    
 }

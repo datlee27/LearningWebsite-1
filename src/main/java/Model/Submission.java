@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -16,13 +19,17 @@ public class Submission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "assignment_id")
-    private int assignmentId;
+    // Replaced primitive ID with a direct object relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignment_id", nullable = false)
+    private Assignment assignment;
 
-    @Column(name = "student_id")
-    private int studentId;
+    // Assumes a User entity exists for students
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
 
-    @Column(name = "file_url")
+    @Column(name = "file_url", nullable = false)
     private String fileUrl;
 
     @Column(name = "submission_date")
@@ -34,66 +41,61 @@ public class Submission {
     public Submission() {
     }
 
-    public Submission(int id, int assignmentId, int studentId, String fileUrl, LocalDateTime submissionDate, Double grade) {
-        this.id = id;
-        this.assignmentId = assignmentId;
-        this.studentId = studentId;
+    // Constructor updated for object relationships
+    public Submission(Assignment assignment, User student, String fileUrl, LocalDateTime submissionDate) {
+        this.assignment = assignment;
+        this.student = student;
         this.fileUrl = fileUrl;
         this.submissionDate = submissionDate;
-        this.grade = grade;
     }
+
+    // --- Getters and Setters ---
 
     public int getId() {
-      return this.id;
-    }
-    public void setId(int value) {
-      this.id = value;
+        return id;
     }
 
-    public int getAssignmentId() {
-      return this.assignmentId;
-    }
-    public void setAssignmentId(int value) {
-      this.assignmentId = value;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public int getStudentId() {
-      return this.studentId;
+    public Assignment getAssignment() {
+        return assignment;
     }
-    public void setStudentId(int value) {
-      this.studentId = value;
+
+    public void setAssignment(Assignment assignment) {
+        this.assignment = assignment;
+    }
+
+    public User getStudent() {
+        return student;
+    }
+
+    public void setStudent(User student) {
+        this.student = student;
     }
 
     public String getFileUrl() {
-      return this.fileUrl;
+        return fileUrl;
     }
-    public void setFileUrl(String value) {
-      this.fileUrl = value;
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 
     public LocalDateTime getSubmissionDate() {
-      return this.submissionDate;
+        return submissionDate;
     }
-    public void setSubmissionDate(LocalDateTime value) {
-      this.submissionDate = value;
+
+    public void setSubmissionDate(LocalDateTime submissionDate) {
+        this.submissionDate = submissionDate;
     }
 
     public Double getGrade() {
-      return this.grade;
-    }
-    public void setGrade(Double value) {
-      this.grade = value;
+        return grade;
     }
 
-    @Override
-    public String toString() {
-        return "Submission{" +
-                "id=" + id +
-                ", assignmentId=" + assignmentId +
-                ", studentId=" + studentId +
-                ", fileUrl='" + fileUrl + '\'' +
-                ", submissionDate=" + submissionDate +
-                ", grade=" + grade +
-                '}';
+    public void setGrade(Double grade) {
+        this.grade = grade;
     }
 }

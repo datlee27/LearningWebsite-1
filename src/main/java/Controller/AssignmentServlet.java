@@ -1,66 +1,91 @@
 package controller;
 
-
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.logging.Logger;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import dao.AssignmentDAO;
+import dao.CourseDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import model.Assignment;
+import model.Course;
 
-@WebServlet(name = "Assignment", urlPatterns = {"/assignment"})
+@WebServlet(name = "AssignmentServlet", urlPatterns = {"/assignments"})
 public class AssignmentServlet extends HttpServlet {
-    private static final Logger logger = Logger.getLogger(AssignmentServlet.class.getName());
-    private final AssignmentDAO dao = new AssignmentDAO();
+    private final AssignmentDAO assignmentDAO = new AssignmentDAO();
+    private final CourseDAO courseDAO = new CourseDAO();
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        int courseId = Integer.parseInt(request.getParameter("courseId"));
+        List<Assignment> assignments = assignmentDAO.getAssignmentsByCourse(courseId);
+        request.setAttribute("assignments", assignments);
+        request.setAttribute("courseId", courseId);
+        request.getRequestDispatcher("/view/assignments.jsp").forward(request, response);
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || !"teacher".equals(session.getAttribute("role"))) {
-            response.sendRedirect(request.getContextPath() + "/view/signIn.jsp");
-            return;
-        }
-
+        String action = request.getParameter("action");
+        if (action == null) action = "create";
+        
         int courseId = Integer.parseInt(request.getParameter("courseId"));
-        String idLectureParam = request.getParameter("lectureId");
-        Integer idLecture = (idLectureParam != null && !idLectureParam.isEmpty()) ? Integer.parseInt(idLectureParam) : null;
-        String title = request.getParameter("title");
-        String description = request.getParameter("description");
-        String dueDate = request.getParameter("dueDate");
-        String assignmentIdParam = request.getParameter("assignmentId");
-
-        if (title == null || title.trim().isEmpty() || description == null || description.trim().isEmpty() || dueDate == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
 
         try {
-            if (assignmentIdParam != null && !assignmentIdParam.isEmpty()) {
-                int assignmentId = Integer.parseInt(assignmentIdParam);
-                dao.updateAssignment(assignmentId, courseId, idLecture, title, description, dueDate);
-            } else {
-                dao.saveAssignment(courseId, idLecture, title, description, dueDate);
+            switch (action) {
+                case "update":
+                    updateAssignment(request);
+                    break;
+                case "delete":
+                    deleteAssignment(request);
+                    break;
+                default:
+                    createAssignment(request);
+                    break;
             }
-            response.setStatus(HttpServletResponse.SC_OK);
-        } catch (SQLException e) {
-            logger.severe("Database error: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            logger.severe("Unexpected error: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            e.printStackTrace();
+            throw new ServletException("Error processing assignment action: " + action, e);
         }
+        response.sendRedirect(request.getContextPath() + "/assignments?courseId=" + courseId);
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.sendRedirect(request.getContextPath() + "/view/addAssignment.jsp");
+    private void createAssignment(HttpServletRequest request) throws ServletException {
+        int courseId = Integer.parseInt(request.getParameter("courseId"));
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        LocalDateTime dueDate = LocalDateTime.parse(request.getParameter("dueDate"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+        Course course = courseDAO.findCourseById(courseId)
+                .orElseThrow(() -> new ServletException("Course not found"));
+        
+        Assignment assignment = new Assignment(course, null, title, description, dueDate, "active");
+        assignmentDAO.saveAssignment(assignment);
+    }
+
+    private void updateAssignment(HttpServletRequest request) throws ServletException {
+        int assignmentId = Integer.parseInt(request.getParameter("assignmentId"));
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        LocalDateTime dueDate = LocalDateTime.parse(request.getParameter("dueDate"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+        Assignment assignment = assignmentDAO.getAssignmentById(assignmentId)
+                .orElseThrow(() -> new ServletException("Assignment not found"));
+        
+        assignment.setTitle(title);
+        assignment.setDescription(description);
+        assignment.setDueDate(dueDate);
+        assignmentDAO.updateAssignment(assignment);
+    }
+
+    private void deleteAssignment(HttpServletRequest request) {
+        int assignmentId = Integer.parseInt(request.getParameter("assignmentId"));
+        assignmentDAO.deleteAssignment(assignmentId);
     }
 }

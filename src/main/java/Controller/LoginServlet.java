@@ -2,11 +2,12 @@ package controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -17,7 +18,7 @@ import com.google.gson.Gson;
 
 import dao.ActivityDAO;
 import dao.UserDAO;
-import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletException; // <-- ADD THIS IMPORT
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,12 +26,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
 
-
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
 
     private static final String GOOGLE_CLIENT_ID = "463263011713-mrrbjqdmf75o6r3lofr88hougr4imc9a.apps.googleusercontent.com";
-    private final UserDAO dao = new UserDAO();
+    private final UserDAO userDAO = new UserDAO();
     private final ActivityDAO activityDAO = new ActivityDAO();
     private final GoogleIdTokenVerifier verifier;
     private final Gson gson = new Gson();
@@ -42,129 +42,106 @@ public class LoginServlet extends HttpServlet {
                 .build();
     }
 
-  @Override
-protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    String usernameOrEmail = request.getParameter("username");
-    String password = request.getParameter("password");
-    String googleIdToken = null;
-
-    HttpSession session = request.getSession();
-    Map<String, Object> jsonResponse = new HashMap<>();
-
-    // Handle JSON payload for Google Sign-In
-    if (request.getContentType() != null && request.getContentType().contains("application/json")) {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader reader = request.getReader()) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-        }
-        String json = sb.toString();
-        logger.info("Received JSON payload: " + json);
-        Map<String, String> jsonMap = gson.fromJson(json, Map.class);
-        googleIdToken = jsonMap.get("googleIdToken");
-    }
-
-    try {
-        User user = null;
-        if (googleIdToken != null) {
-            logger.info("Processing Google Sign-In with token: " + googleIdToken);
-            String googleId = verifyGoogleToken(googleIdToken);
-            if (googleId != null) {
-                user = dao.findByGoogleId(googleId);
-                if (user == null) {
-                    String email = extractEmailFromToken(googleIdToken);
-                    String defaultUsername = email != null ? email.split("@")[0] : "google_user_" + googleId;
-                    session.setAttribute("tempGoogleId", googleId);
-                    session.setAttribute("tempEmail", email);
-                    session.setAttribute("tempUsername", defaultUsername);
-                    logger.info("New Google user detected. Redirecting to selectRole.jsp");
-                    jsonResponse.put("success", true);
-                    jsonResponse.put("redirect", request.getContextPath() + "/view/selectRole.jsp");
-                } else {
-                    session.setAttribute("username", user.getUsername());
-                    session.setAttribute("role", user.getRole()); 
-                    activityDAO.logLogin(user.getUsername());
-                    // Set login time and historical activity for today
-                    session.setAttribute("loginTime", System.currentTimeMillis());
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    String today = sdf.format(new java.util.Date());
-                    int historicalMinutes = activityDAO.getTotalActivityForDate(user.getUsername(), today);
-                    session.setAttribute("historicalMinutesToday", historicalMinutes);
-                    logger.info("Existing Google user logged in: " + user.getUsername());
-                    jsonResponse.put("success", true);
-                    jsonResponse.put("redirect", request.getContextPath() + "/homePage");
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        String googleIdTokenString = null;
+        if ("application/json".equalsIgnoreCase(request.getContentType())) {
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader reader = request.getReader()) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
                 }
-            } else {
-                logger.warning("Invalid Google token received");
-                jsonResponse.put("success", false);
-                jsonResponse.put("message", "Invalid Google token");
             }
-        } else {
-            logger.info("Processing standard login with identifier: " + usernameOrEmail + ", password length: " + (password != null ? password.length() : 0));
-            user = dao.authenticate(usernameOrEmail, password, null);
-            if (user != null) {
-                session.setAttribute("username", user.getUsername());
-                session.setAttribute("role", user.getRole());
-                activityDAO.logLogin(user.getUsername());
-                // Set login time and historical activity for today
-                session.setAttribute("loginTime", System.currentTimeMillis());
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                String today = sdf.format(new java.util.Date());
-                int historicalMinutes = activityDAO.getTotalActivityForDate(user.getUsername(), today);
-                session.setAttribute("historicalMinutesToday", historicalMinutes);
-                logger.info("Standard login successful for user: " + user.getUsername());
-                response.sendRedirect(request.getContextPath() + "/homePage");
-                return;
-            } else {
-                logger.warning("Standard login failed for username/email: " + usernameOrEmail);
-                request.setAttribute("error", "Invalid usernameyou can continue from here...username/email or password");
-                request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
-                return;
-            }
+            Map<String, String> jsonPayload = gson.fromJson(sb.toString(), Map.class);
+            googleIdTokenString = jsonPayload.get("googleIdToken");
         }
 
-        if (!jsonResponse.isEmpty()) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(gson.toJson(jsonResponse));
+        if (googleIdTokenString != null) {
+            handleGoogleLogin(googleIdTokenString, request, response);
+        } else {
+            handleStandardLogin(request, response);
         }
-    } catch (SQLException e) {
-        logger.severe("Database error: " + e.getMessage());
-        request.setAttribute("error", "Database error: " + e.getMessage());
-        request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
-    } catch (Exception e) {
-        logger.severe("Unexpected error: " + e.getMessage());
-        request.setAttribute("error", "An unexpected error occurred: " + e.getMessage());
-        request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
     }
-}
+
+    private void handleStandardLogin(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String usernameOrEmail = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        Optional<User> userOpt = userDAO.authenticate(usernameOrEmail, password);
+
+        if (userOpt.isPresent()) {
+            setupSession(request.getSession(), userOpt.get());
+            response.sendRedirect(request.getContextPath() + "/homePage");
+        } else {
+            request.setAttribute("error", "Invalid username/email or password.");
+            request.getRequestDispatcher("/view/signIn.jsp").forward(request, response);
+        }
+    }
+
+    private void handleGoogleLogin(String idTokenString, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        Map<String, Object> jsonResponse = new HashMap<>();
+        try {
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken == null) {
+                throw new GeneralSecurityException("Invalid Google ID token.");
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String googleId = payload.getSubject();
+            String email = payload.getEmail();
+
+            // This is the corrected logic using the new DAO
+            Optional<User> userOpt = userDAO.findByGoogleId(googleId);
+
+            if (userOpt.isPresent()) {
+                setupSession(request.getSession(), userOpt.get());
+                jsonResponse.put("success", true);
+                jsonResponse.put("redirect", request.getContextPath() + "/homePage");
+            } else {
+                HttpSession session = request.getSession();
+                session.setAttribute("tempGoogleId", googleId);
+                session.setAttribute("tempEmail", email);
+                session.setAttribute("tempUsername", email.split("@")[0]);
+                jsonResponse.put("success", true);
+                jsonResponse.put("redirect", request.getContextPath() + "/view/selectRole.jsp");
+            }
+
+        } catch (GeneralSecurityException | IOException e) {
+            logger.warning("Google login failed: " + e.getMessage());
+            jsonResponse.put("success", false);
+            jsonResponse.put("message", "Google authentication failed.");
+        }
+        
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(gson.toJson(jsonResponse));
+    }
+
+    private void setupSession(HttpSession session, User user) {
+        session.setAttribute("user", user);
+        session.setAttribute("username", user.getUsername());
+        session.setAttribute("role", user.getRole());
+        
+        try {
+            // Assuming ActivityDAO is also refactored for JPA
+            activityDAO.logLogin(user);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to log login activity for user: " + user.getUsername(), e);
+        }
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("username") != null) {
-            String username = (String) session.getAttribute("username");
-            try {
-                activityDAO.logLogout(username); // Cập nhật thời gian đăng xuất
-            } catch (Exception e) {
-                logger.severe("Error logging out: " + e.getMessage());
-            }
+        if (session != null) {
             session.invalidate();
         }
         response.sendRedirect(request.getContextPath() + "/view/signIn.jsp");
-    }
-
-    private String verifyGoogleToken(String idTokenString) throws Exception {
-        GoogleIdToken idToken = verifier.verify(idTokenString);
-        return (idToken != null) ? idToken.getPayload().getSubject() : null;
-    }
-
-    private String extractEmailFromToken(String idTokenString) throws Exception {
-        GoogleIdToken idToken = verifier.verify(idTokenString);
-        return (idToken != null) ? idToken.getPayload().getEmail() : null;
     }
 }
