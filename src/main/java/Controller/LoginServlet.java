@@ -1,30 +1,37 @@
-package Controller;
+package controller;
 
-import DAO.DAO;
-import Model.User;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.gson.Gson;
+
+import dao.ActivityDAO;
+import dao.UserDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import com.google.gson.Gson;
-import com.google.api.client.json.gson.GsonFactory;
-import java.io.BufferedReader;
-import java.text.SimpleDateFormat;
-import java.util.logging.Logger;
+import model.User;
 
+
+@WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
 
     private static final String GOOGLE_CLIENT_ID = "463263011713-mrrbjqdmf75o6r3lofr88hougr4imc9a.apps.googleusercontent.com";
-    private final DAO dao = new DAO();
+    private final UserDAO dao = new UserDAO();
+    private final ActivityDAO activityDAO = new ActivityDAO();
     private final GoogleIdTokenVerifier verifier;
     private final Gson gson = new Gson();
     private static final Logger logger = Logger.getLogger(LoginServlet.class.getName());
@@ -79,12 +86,12 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
                 } else {
                     session.setAttribute("username", user.getUsername());
                     session.setAttribute("role", user.getRole()); 
-                    dao.logLogin(user.getUsername());
+                    activityDAO.logLogin(user.getUsername());
                     // Set login time and historical activity for today
                     session.setAttribute("loginTime", System.currentTimeMillis());
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                     String today = sdf.format(new java.util.Date());
-                    int historicalMinutes = dao.getTotalActivityForDate(user.getUsername(), today);
+                    int historicalMinutes = activityDAO.getTotalActivityForDate(user.getUsername(), today);
                     session.setAttribute("historicalMinutesToday", historicalMinutes);
                     logger.info("Existing Google user logged in: " + user.getUsername());
                     jsonResponse.put("success", true);
@@ -100,13 +107,13 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
             user = dao.authenticate(usernameOrEmail, password, null);
             if (user != null) {
                 session.setAttribute("username", user.getUsername());
-                session.setAttribute("role", user.getRole()); 
-                dao.logLogin(user.getUsername());
+                session.setAttribute("role", user.getRole());
+                activityDAO.logLogin(user.getUsername());
                 // Set login time and historical activity for today
                 session.setAttribute("loginTime", System.currentTimeMillis());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 String today = sdf.format(new java.util.Date());
-                int historicalMinutes = dao.getTotalActivityForDate(user.getUsername(), today);
+                int historicalMinutes = activityDAO.getTotalActivityForDate(user.getUsername(), today);
                 session.setAttribute("historicalMinutesToday", historicalMinutes);
                 logger.info("Standard login successful for user: " + user.getUsername());
                 response.sendRedirect(request.getContextPath() + "/homePage");
@@ -142,7 +149,7 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         if (session != null && session.getAttribute("username") != null) {
             String username = (String) session.getAttribute("username");
             try {
-                dao.logLogout(username); // Cập nhật thời gian đăng xuất
+                activityDAO.logLogout(username); // Cập nhật thời gian đăng xuất
             } catch (Exception e) {
                 logger.severe("Error logging out: " + e.getMessage());
             }

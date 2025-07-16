@@ -250,10 +250,24 @@
         const now = new Date();
         const today = now.toISOString().split('T')[0];
         const todayCell = document.querySelector(`[data-date="${today}"]`);
-        const historicalMinutes = <%= historicalMinutesToday %>;
+        const historicalMinutes = <%= historicalMinutesToday != null ? historicalMinutesToday : 0 %>;
+        const loginTimeValue = <%= loginTime != null ? loginTime : 0 %>;
         if (todayCell) {
             setInterval(() => {
-                const loginTime = <%= loginTime != null ? loginTime : 0 %>;
+                // Use loginTimeValue instead of redeclaring loginTime
+                const currentTime = new Date().getTime();
+                if (loginTimeValue > 0) {
+                    const realTimeDuration = Math.floor((currentTime - loginTimeValue) / 1000 / 60);
+                    const totalMinutes = historicalMinutes + realTimeDuration;
+                    todayCell.dataset.minutes = totalMinutes;
+                    const colorClass = totalMinutes > 180 ? 'dark-blue' :
+                                      totalMinutes > 60 ? 'medium-blue' :
+                                      totalMinutes > 0 ? 'light-blue' : 'gray';
+                    todayCell.className = `calendar-cell ${colorClass}`;
+                    todayCell.querySelector('.tooltip').textContent = totalMinutes > 0 ? totalMinutes + " minutes" : "No activity";
+                }
+            }, 60000); // Cập nhật mỗi phút
+        }
                 if (loginTime > 0) {
                     const currentTime = new Date().getTime();
                     const realTimeDuration = Math.floor((currentTime - loginTime) / 1000 / 60);

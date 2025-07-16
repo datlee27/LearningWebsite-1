@@ -1,17 +1,19 @@
-package Controller;
+package controller;
 
-import DAO.DAO;
-import Model.User;
+import java.io.IOException;
+
+import dao.UserDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
-import java.sql.SQLException;
+import model.User;
 
+@WebServlet(name = "UpdateRoleServlet", urlPatterns = {"/updaterole"})
 public class UpdateRoleServlet extends HttpServlet {
-    private final DAO dao = new DAO();
+    private final UserDAO dao = new UserDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

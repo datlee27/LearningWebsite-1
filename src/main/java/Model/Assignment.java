@@ -1,15 +1,49 @@
-package Model;
+package model;
 
-import com.google.api.client.util.DateTime;
+import java.time.LocalDateTime;
 
-public class Assignments {
-    private int idAss, idCourse;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+
+@Entity
+@Table(name = "Assignments")
+public class Assignment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int idAss;
+
+    @Column(name = "course_id")
+    private int idCourse;
+
+    @Column(name = "lecture_id")
     private Integer idLecture;
-    private String title, description;
-    private DateTime dueDate;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "due_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime dueDate;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private String status;
 
-    public Assignments(int idCourse, Integer idLecture, String title, String description, DateTime dueDate, String status) {
+    public Assignment() {
+    }
+
+    public Assignment(int idCourse, Integer idLecture, String title, String description, LocalDateTime dueDate, String status) {
         this.idCourse = idCourse;
         this.idLecture = idLecture;
         this.title = title;
@@ -58,11 +92,11 @@ public class Assignments {
         this.description = description;
     }
 
-    public DateTime getDueDate() {
+    public LocalDateTime getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(DateTime dueDate) {
+    public void setDueDate(LocalDateTime dueDate) {
         this.dueDate = dueDate;
     }
 

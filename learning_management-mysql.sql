@@ -3,50 +3,50 @@ CREATE DATABASE learning_management;
 USE learning_management;
 
 CREATE TABLE Users (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    first_name NVARCHAR(50) NOT NULL,
-    last_name NVARCHAR(50) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
     date_of_birth DATE,
-    gender VARCHAR(10) CHECK (gender IN ('male', 'female', 'other')),
+    gender ENUM('male', 'female', 'other'),
     phone VARCHAR(20),
     school VARCHAR(100),
-    role VARCHAR(10) CHECK (role IN ('student', 'teacher', 'admin')) NOT NULL
+    role ENUM('student', 'teacher', 'admin') NOT NULL
 );
 
 CREATE TABLE Courses (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    description NVARCHAR(MAX),
+    description TEXT,
     teacher_id INT,
     FOREIGN KEY (teacher_id) REFERENCES Users(id)
 );
 
 CREATE TABLE Lectures (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     course_id INT,
-    title NVARCHAR(100) NOT NULL,
+    title VARCHAR(100) NOT NULL,
     video_url VARCHAR(255) NOT NULL,
-    status VARCHAR(10) CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     FOREIGN KEY (course_id) REFERENCES Courses(id)
 );
 
 CREATE TABLE Assignments (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     course_id INT,
     lecture_id INT,
-    title NVARCHAR(100) NOT NULL,
-    description NVARCHAR(MAX),
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
     due_date DATETIME,
-    status VARCHAR(10) CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     FOREIGN KEY (course_id) REFERENCES Courses(id),
     FOREIGN KEY (lecture_id) REFERENCES Lectures(id)
 );
 
 CREATE TABLE Submissions (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     assignment_id INT,
     student_id INT,
     file_url VARCHAR(255),
@@ -57,11 +57,11 @@ CREATE TABLE Submissions (
 );
 
 CREATE TABLE Enrollments (
-    id INT IDENTITY(1,1) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT,
     course_id INT,
-    enrollment_date DATETIME DEFAULT GETDATE(),
-    status VARCHAR(10) CHECK (status IN ('enrolled', 'completed', 'dropped')) DEFAULT 'enrolled',
+    enrollment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('enrolled', 'completed', 'dropped') DEFAULT 'enrolled',
     FOREIGN KEY (student_id) REFERENCES Users(id),
     FOREIGN KEY (course_id) REFERENCES Courses(id)
 );
@@ -125,106 +125,69 @@ INSERT INTO Submissions (assignment_id, student_id, file_url, submission_date, g
 (3, 4, 'https://files.hocmai.vn/ai_assignment.pdf', '2024-06-16 18:00:00', 9.0);
 
 GO
-CREATE FUNCTION GetEnrollmentCount(@courseId INT)
-RETURNS INT
-AS
-BEGIN
-    DECLARE @cnt INT;
-    SELECT @cnt = COUNT(*) FROM Enrollments WHERE course_id = @courseId;
-    RETURN @cnt;
-END
-GO
+-- MySQL does not support table-valued parameters or T-SQL style triggers/procedures.
+-- Below are MySQL-compatible versions.
 
-CREATE TRIGGER PreventDuplicateEnrollment
-ON Enrollments
-INSTEAD OF INSERT
-AS
+DELIMITER //
+
+CREATE PROCEDURE GetEnrollmentCount(IN courseId INT, OUT cnt INT)
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM Enrollments WHERE course_id = courseId;
+END //
+
+CREATE TRIGGER PreventDuplicateEnrollment BEFORE INSERT ON Enrollments
+FOR EACH ROW
 BEGIN
     IF EXISTS (
-        SELECT 1 FROM inserted i
-        JOIN Enrollments e ON i.student_id = e.student_id AND i.course_id = e.course_id
-    )
-    BEGIN
-        RAISERROR('Student is already enrolled in this course.', 16, 1);
-        RETURN;
-    END
+        SELECT 1 FROM Enrollments WHERE student_id = NEW.student_id AND course_id = NEW.course_id
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Student is already enrolled in this course.';
+    END IF;
+END //
 
-    INSERT INTO Enrollments (student_id, course_id, enrollment_date, status)
-    SELECT student_id, course_id, enrollment_date, status
-    FROM inserted;
-END
-GO
-
-CREATE PROCEDURE CompleteEnrollment
-    @enrollmentId INT
-AS
+CREATE PROCEDURE CompleteEnrollment(IN enrollmentId INT)
 BEGIN
     UPDATE Enrollments
     SET status = 'completed'
-    WHERE id = @enrollmentId;
-END
-GO
+    WHERE id = enrollmentId;
+END //
 
-CREATE TRIGGER UpdateDurationOnLogout
-ON UserActivity
-AFTER UPDATE
-AS
+CREATE TRIGGER UpdateDurationOnLogout AFTER UPDATE ON UserActivity
+FOR EACH ROW
 BEGIN
-    UPDATE ua
-    SET duration_minutes = DATEDIFF(MINUTE, ua.login_time, ua.logout_time)
-    FROM UserActivity ua
-    INNER JOIN inserted i ON ua.id = i.id
-    WHERE i.logout_time IS NOT NULL AND ua.logout_time IS NOT NULL;
-END
-GO
+    IF NEW.logout_time IS NOT NULL THEN
+        UPDATE UserActivity
+        SET duration_minutes = TIMESTAMPDIFF(MINUTE, NEW.login_time, NEW.logout_time)
+        WHERE id = NEW.id;
+    END IF;
+END //
 
-CREATE PROCEDURE GetStudentGrades
-    @courseId INT
-AS
+CREATE PROCEDURE GetStudentGrades(IN courseId INT)
 BEGIN
     SELECT u.id AS student_id, u.username, a.title, s.grade
     FROM Users u
     JOIN Enrollments e ON u.id = e.student_id
     JOIN Assignments a ON a.course_id = e.course_id
     LEFT JOIN Submissions s ON s.assignment_id = a.id AND s.student_id = u.id
-    WHERE e.course_id = @courseId;
-END
-GO
+    WHERE e.course_id = courseId;
+END //
 
-CREATE PROCEDURE UpdateAssignmentDueDate
-    @AssignmentId INT,
-    @NewDueDate DATETIME
-AS
+CREATE PROCEDURE UpdateAssignmentDueDate(IN AssignmentId INT, IN NewDueDate DATETIME)
 BEGIN
     UPDATE Assignments
-    SET due_date = @NewDueDate
-    WHERE id = @AssignmentId;
-END
-GO
+    SET due_date = NewDueDate
+    WHERE id = AssignmentId;
+END //
 
-CREATE TRIGGER trg_PreventLateSubmission
-ON Submissions
-INSTEAD OF INSERT
-AS
+CREATE TRIGGER trg_PreventLateSubmission BEFORE INSERT ON Submissions
+FOR EACH ROW
 BEGIN
-    SET NOCOUNT ON;
+    DECLARE due DATETIME;
+    SELECT due_date INTO due FROM Assignments WHERE id = NEW.assignment_id;
+    IF NEW.submission_date > due THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot submit after assignment due date.';
+    END IF;
+END //
 
-    INSERT INTO Submissions (assignment_id, student_id, file_url, submission_date, grade)
-    SELECT i.assignment_id, i.student_id, i.file_url, i.submission_date, i.grade
-    FROM inserted i
-    JOIN Assignments a ON i.assignment_id = a.id
-    WHERE i.submission_date <= a.due_date;
-
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN Assignments a ON i.assignment_id = a.id
-        WHERE i.submission_date > a.due_date
-    )
-    BEGIN
-        RAISERROR('Cannot submit after assignment due date.', 16, 1);
-    END
-END
-GO
-
+DELIMITER ;
 

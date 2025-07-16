@@ -1,21 +1,22 @@
-package Controller;
+package controller;
 
-import DAO.DAO;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import dao.CourseDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-
-public class AddCourseServlet extends HttpServlet {
-    private static final Logger logger = Logger.getLogger(AddCourseServlet.class.getName());
-    private final DAO dao = new DAO();
+@WebServlet(name = "Course", urlPatterns = {"/course"})
+public class CourseServlet extends HttpServlet {
+    private static final Logger logger = Logger.getLogger(CourseServlet.class.getName());
+    private final CourseDAO dao = new CourseDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -47,7 +48,7 @@ public class AddCourseServlet extends HttpServlet {
             request.setAttribute("error", "Failed to add course: " + e.getMessage());
             request.getRequestDispatcher("/view/addCourses.jsp").forward(request, response);
         } catch (Exception ex) {
-            Logger.getLogger(AddCourseServlet.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CourseServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

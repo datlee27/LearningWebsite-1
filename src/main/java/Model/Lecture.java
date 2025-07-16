@@ -1,8 +1,33 @@
-package Model;
+package model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "Lectures")
 public class Lecture {
-    private int idLecture, idCourse;
-    private String title, videoUrl, status;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int idLecture;
+
+    @Column(name = "course_id")
+    private int idCourse;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "video_url")
+    private String videoUrl;
+
+    @Column(name = "status")
+    private String status;
+
+    public Lecture() {
+    }
 
     public Lecture(int idCourse, String title, String videoUrl, String status) {
         this.idCourse = idCourse;

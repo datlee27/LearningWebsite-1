@@ -1,23 +1,46 @@
-package Model;
+package model;
 
-import Model.Assignments;
-import Model.Lecture;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "Courses")
 public class Course {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idCourse;
-    private String name, description;
+    
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "teacher_id")
     private int idTeacher;
-    private List<Lecture> lectures;
-    private List<Assignments> assignments;
+
+    @OneToMany(mappedBy = "idCourse", cascade = CascadeType.ALL)
+    private List<Lecture> lectures = new ArrayList<>();
+
+    @OneToMany(mappedBy = "idCourse", cascade = CascadeType.ALL)
+    private List<Assignment> assignments = new ArrayList<>();
+
+    public Course() {
+    }
 
     public Course(String name, String description, int idTeacher) {
         this.name = name;
         this.description = description;
         this.idTeacher = idTeacher;
-        this.lectures = new ArrayList<>();
-        this.assignments = new ArrayList<>();
     }
 
     public int getIdCourse() {
@@ -60,25 +83,11 @@ public class Course {
         this.lectures = lectures;
     }
 
-    public List<Assignments> getAssignments() {
+    public List<Assignment> getAssignments() {
         return assignments;
     }
 
-    public void setAssignments(List<Assignments> assignments) {
+    public void setAssignments(List<Assignment> assignments) {
         this.assignments = assignments;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Course{");
-        sb.append("idCourse=").append(idCourse);
-        sb.append(", name=").append(name);
-        sb.append(", description=").append(description);
-        sb.append(", idTeacher=").append(idTeacher);
-        sb.append(", lectures=").append(lectures);
-        sb.append(", assignments=").append(assignments);
-        sb.append('}');
-        return sb.toString();
     }
 }

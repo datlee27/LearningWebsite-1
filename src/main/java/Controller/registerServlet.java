@@ -1,15 +1,20 @@
-package Controller;
+package controller;
 
+import java.io.IOException;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+import dao.UserDAO;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import Model.User;
-import DAO.DAO;
-import org.mindrot.jbcrypt.BCrypt;
-import java.io.IOException;
+import model.User;
 
-public class registerServlet extends HttpServlet {
+
+@WebServlet(name = "RegisterServlet", urlPatterns = {"/register"})
+public class RegisterServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,7 +65,7 @@ public class registerServlet extends HttpServlet {
         user.setGoogleId(null);
 
         // Lưu người dùng vào cơ sở dữ liệu
-        DAO dao = new DAO();
+        UserDAO dao = new UserDAO();
         try {
             dao.save(user);
             // Đăng ký thành công, chuyển hướng đến trang đăng nhập

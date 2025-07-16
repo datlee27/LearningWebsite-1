@@ -1,23 +1,45 @@
 package model;
 
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "Submissions")
 public class Submission {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private Assignment assignment;
-    private User student;
-    private String content;
-    private String submittedAt;
-    private Double grade; // nullable until graded
-    // getters/setters
+
+    @Column(name = "assignment_id")
+    private int assignmentId;
+
+    @Column(name = "student_id")
+    private int studentId;
+
+    @Column(name = "file_url")
+    private String fileUrl;
+
+    @Column(name = "submission_date")
+    private LocalDateTime submissionDate;
+
+    @Column(name = "grade")
+    private Double grade;
 
     public Submission() {
     }
 
-    public Submission(int id, Assignment assignment, User student, String content, String submittedAt, Double grade) {
+    public Submission(int id, int assignmentId, int studentId, String fileUrl, LocalDateTime submissionDate, Double grade) {
         this.id = id;
-        this.assignment = assignment;
-        this.student = student;
-        this.content = content;
-        this.submittedAt = submittedAt;
+        this.assignmentId = assignmentId;
+        this.studentId = studentId;
+        this.fileUrl = fileUrl;
+        this.submissionDate = submissionDate;
         this.grade = grade;
     }
 
@@ -28,32 +50,32 @@ public class Submission {
       this.id = value;
     }
 
-    public Assignment getAssignment() {
-      return this.assignment;
+    public int getAssignmentId() {
+      return this.assignmentId;
     }
-    public void setAssignment(Assignment value) {
-      this.assignment = value;
-    }
-
-    public User getStudent() {
-      return this.student;
-    }
-    public void setStudent(User value) {
-      this.student = value;
+    public void setAssignmentId(int value) {
+      this.assignmentId = value;
     }
 
-    public String getContent() {
-      return this.content;
+    public int getStudentId() {
+      return this.studentId;
     }
-    public void setContent(String value) {
-      this.content = value;
+    public void setStudentId(int value) {
+      this.studentId = value;
     }
 
-    public String getSubmittedAt() {
-      return this.submittedAt;
+    public String getFileUrl() {
+      return this.fileUrl;
     }
-    public void setSubmittedAt(String value) {
-      this.submittedAt = value;
+    public void setFileUrl(String value) {
+      this.fileUrl = value;
+    }
+
+    public LocalDateTime getSubmissionDate() {
+      return this.submissionDate;
+    }
+    public void setSubmissionDate(LocalDateTime value) {
+      this.submissionDate = value;
     }
 
     public Double getGrade() {
@@ -61,5 +83,17 @@ public class Submission {
     }
     public void setGrade(Double value) {
       this.grade = value;
+    }
+
+    @Override
+    public String toString() {
+        return "Submission{" +
+                "id=" + id +
+                ", assignmentId=" + assignmentId +
+                ", studentId=" + studentId +
+                ", fileUrl='" + fileUrl + '\'' +
+                ", submissionDate=" + submissionDate +
+                ", grade=" + grade +
+                '}';
     }
 }
