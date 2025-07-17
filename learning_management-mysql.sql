@@ -1,5 +1,7 @@
-CREATE DATABASE learning_management;
+-- Active: 1752671726187@@127.0.0.1@3306@learning_management
+-- MySQL Learning Management Schema
 
+CREATE DATABASE IF NOT EXISTS learning_management;
 USE learning_management;
 
 CREATE TABLE Users (
@@ -10,10 +12,10 @@ CREATE TABLE Users (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     date_of_birth DATE,
-    gender ENUM('male', 'female', 'other'),
+    gender VARCHAR(10) CHECK (gender IN ('male', 'female', 'other')),
     phone VARCHAR(20),
     school VARCHAR(100),
-    role ENUM('student', 'teacher', 'admin') NOT NULL
+    role VARCHAR(10) CHECK (role IN ('student', 'teacher', 'admin')) NOT NULL
 );
 
 CREATE TABLE Courses (
@@ -21,6 +23,7 @@ CREATE TABLE Courses (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     teacher_id INT,
+    thumbnail VARCHAR(255),
     FOREIGN KEY (teacher_id) REFERENCES Users(id)
 );
 
@@ -29,7 +32,6 @@ CREATE TABLE Lectures (
     course_id INT,
     title VARCHAR(100) NOT NULL,
     video_url VARCHAR(255) NOT NULL,
-    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     FOREIGN KEY (course_id) REFERENCES Courses(id)
 );
 
@@ -40,7 +42,7 @@ CREATE TABLE Assignments (
     title VARCHAR(100) NOT NULL,
     description TEXT,
     due_date DATETIME,
-    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    status VARCHAR(10) CHECK (status IN ('not yet', 'in progress', 'ended')) DEFAULT 'not yet',
     FOREIGN KEY (course_id) REFERENCES Courses(id),
     FOREIGN KEY (lecture_id) REFERENCES Lectures(id)
 );
@@ -61,7 +63,7 @@ CREATE TABLE Enrollments (
     student_id INT,
     course_id INT,
     enrollment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('enrolled', 'completed', 'dropped') DEFAULT 'enrolled',
+    status VARCHAR(10) CHECK (status IN ('enrolled', 'completed', 'dropped')) DEFAULT 'enrolled',
     FOREIGN KEY (student_id) REFERENCES Users(id),
     FOREIGN KEY (course_id) REFERENCES Courses(id)
 );
@@ -74,60 +76,36 @@ CREATE TABLE UserActivity (
     duration_minutes INT
 );
 
--- Sample data: 5 students, 4 teachers, 1 admin (Vietnamese names and schools)
-INSERT INTO Users (username, password, email, first_name, last_name, date_of_birth, gender, phone, school, role) VALUES
-('admin_qnnguyen', 'A8d!nU2i4@', 'quangnm@viettel.com.vn', 'Nguyễn Mạnh', 'Quang','1980-01-01', 'male', '0909000000', 'Viettel', 'admin'),
-('mt_haminh', 'M!nHk2024#', 'mhminh@hust.edu.vn', 'Lê Minh',  'Hà','2003-03-15', 'female', '0901000001', 'Đại học Bách Khoa Hà Nội', 'student'),
-('ap_phamanh', 'A7pN!eu@', 'apmanh@neu.edu.vn', 'Phạm', 'Hoàng Anh', '2002-07-22', 'male', '0901000002', 'Đại học Kinh tế Quốc dân', 'student'),
-('hl_lehoa', 'H0aL#ftu$', 'hlhoa@ftu.edu.vn', 'Lê', 'Thanh Hoa', '2001-11-05', 'female', '0901000003', 'Đại học Ngoại thương', 'student'),
-('tv_vutuan', 'TuanV!uet*', 'tvvtuan@uet.edu.vn', 'Vũ', 'Mạnh Tuấn', '2004-01-30', 'male', '0901000004', 'Đại học Công nghệ', 'student'),
-('lh_hoanglan', 'L@nHmu2024!', 'lhlan@hmu.edu.vn', 'Hoàng', 'Thị Lan', '2003-09-18', 'female', '0901000005', 'Đại học Y Hà Nội', 'student'),
-('hn_nguyenhieu', 'H!euN@hust$', 'hnhieu@hust.edu.vn', 'Nguyễn', 'Mạnh Hiếu', '1985-04-10', 'male', '0902000001', 'Đại học Bách Khoa Hà Nội', 'teacher'),
-('mt_tranmai', 'M@iT!neu#', 'mtmai@neu.edu.vn', 'Trần', 'Hoàng Mai', '1983-08-25', 'female', '0902000002', 'Đại học Kinh tế Quốc dân', 'teacher'),
-('sp_phamson', 'S0nP@ftu$', 'spson@ftu.edu.vn', 'Phạm', 'Ngọc Sơn', '1987-12-12', 'male', '0902000003', 'Đại học Ngoại thương', 'teacher'),
-('tl_lethao', 'Th@oL!uet*', 'tlthao@uet.edu.vn', 'Lê', 'Thị Thảo', '1984-06-30', 'female', '0902000004', 'Đại học Công nghệ', 'teacher')
+-- Sample data
+INSERT INTO Courses (name, description, teacher_id, thumbnail) VALUES
+('Introduction to Programming', 'Learn the basics of coding with this beginner-friendly course.', 1, 'thumbnail1.png'),
+('Web Development Basics', 'Build your first website with HTML, CSS, and JavaScript.', 1, 'thumbnail2.png'),
+('Data Science Fundamentals', 'Explore data analysis and visualization techniques.', 1, 'thumbnail3.png');
 
--- Sample Courses
-INSERT INTO Courses (name, description, teacher_id) VALUES
-('Lập trình Python', 'Khóa học lập trình Python cơ bản', 7),
-('SQL Cơ bản', 'Khóa học về cơ sở dữ liệu và SQL', 9),
-('Trí tuệ nhân tạo', 'Giới thiệu về AI và Machine Learning', 8);
+-- Example lectures
+INSERT INTO Lectures (course_id, title, video_url) VALUES
+(1, 'Getting Started with Programming', 'https://video.example.com/programming_intro.mp4'),
+(1, 'Variables and Data Types', 'https://video.example.com/variables.mp4'),
+(1, 'Control Structures', 'https://video.example.com/control_structures.mp4'),
+(2, 'HTML Basics', 'https://video.example.com/html_basics.mp4'),
+(2, 'CSS Fundamentals', 'https://video.example.com/css_fundamentals.mp4'),
+(2, 'JavaScript Introduction', 'https://video.example.com/js_intro.mp4'),
+(3, 'Introduction to Data Science', 'https://video.example.com/ds_intro.mp4'),
+(3, 'Data Visualization', 'https://video.example.com/data_viz.mp4'),
+(3, 'Basic Statistics', 'https://video.example.com/statistics.mp4');
 
--- Sample Lectures
-INSERT INTO Lectures (course_id, title, video_url, status) VALUES
-(1, 'Biến và kiểu dữ liệu', 'https://video.hocmai.vn/python_variables.mp4', 'approved'),
-(2, 'Giới thiệu về SQL', 'https://video.hocmai.vn/sql_intro.mp4', 'approved'),
-(2, 'Truy vấn dữ liệu', 'https://video.hocmai.vn/sql_query.mp4', 'approved'),
-(3, 'Giới thiệu về AI', 'https://video.hocmai.vn/ai_intro.mp4', 'approved'),
-(3, 'Machine Learning cơ bản', 'https://video.hocmai.vn/ml_basic.mp4', 'approved');
+-- Example enrollments
+INSERT INTO Enrollments (student_id, course_id, status) VALUES
+(2, 1, 'enrolled'),
+(2, 2, 'enrolled'),
+(2, 3, 'enrolled');
 
--- Sample Assignments
-INSERT INTO Assignments (course_id, lecture_id, title, description, due_date, status) VALUES
-(1, 1, 'Bài tập Python', 'Viết chương trình Python tính tổng các số từ 1 đến 100', '2024-06-24 23:59:59', 'approved'),
-(2, 2, 'Bài tập SQL', 'Viết truy vấn SQL lấy danh sách học sinh', '2024-06-25 23:59:59', 'approved'),
-(3, 3, 'Bài tập AI', 'Trình bày ứng dụng AI trong thực tế', '2024-06-26 23:59:59', 'approved');
-
--- Sample Enrollments
-INSERT INTO Enrollments (student_id, course_id, enrollment_date, status) VALUES
-(2, 1, '2024-06-01 08:00:00', 'enrolled'),
-(3, 1, '2024-06-01 08:05:00', 'enrolled'),
-(4, 2, '2024-06-02 09:00:00', 'enrolled'),
-(5, 3, '2024-06-03 10:00:00', 'enrolled'),
-(6, 2, '2024-06-04 11:00:00', 'enrolled'),
-(2, 3, '2024-06-05 12:00:00', 'enrolled'),
-(3, 1, '2024-06-06 13:00:00', 'enrolled'),
-(4, 2, '2024-06-07 14:00:00', 'enrolled');
-
--- Sample Submissions
+-- Example submissions
 INSERT INTO Submissions (assignment_id, student_id, file_url, submission_date, grade) VALUES
-(1, 2, 'https://files.hocmai.vn/python_assignment.pdf', '2024-06-14 16:00:00', 9.5),
-(2, 3, 'https://files.hocmai.vn/sql_assignment.pdf', '2024-06-15 17:00:00', 8.0),
-(3, 4, 'https://files.hocmai.vn/ai_assignment.pdf', '2024-06-16 18:00:00', 9.0);
+(1, 2, 'file1.pdf', NOW(), 9.0),
+(2, 2, 'file2.pdf', NOW(), 8.5);
 
-GO
--- MySQL does not support table-valued parameters or T-SQL style triggers/procedures.
--- Below are MySQL-compatible versions.
-
+-- MySQL Procedures and Triggers
 DELIMITER //
 
 CREATE PROCEDURE GetEnrollmentCount(IN courseId INT, OUT cnt INT)
@@ -190,4 +168,3 @@ BEGIN
 END //
 
 DELIMITER ;
-

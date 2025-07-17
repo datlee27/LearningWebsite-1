@@ -18,9 +18,9 @@ import jakarta.persistence.Table;
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id") // Matching the column name 'id' from your DAO's SQL query
+    @Column(name = "id") // Updated column name to 'id_course'
     private int idCourse;
-    
+
     @Column(name = "name")
     private String name;
 
@@ -28,7 +28,10 @@ public class Course {
     private String description;
 
     @Column(name = "teacher_id")
-    private int idTeacher;
+    private int idTeacher; // Renamed to idTeacher
+
+    @Column(name = "thumbnail")
+    private String thumbnail;
 
     // Correct: mappedBy points to the 'course' field in the Lecture entity
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -41,12 +44,13 @@ public class Course {
     // Constructors, Getters, and Setters remain the same...
     public Course() {}
 
-    public Course(String name, String description, int idTeacher) {
+    public Course(String name, String description, int idTeacher, String thumbnail) {
         this.name = name;
         this.description = description;
         this.idTeacher = idTeacher;
+        this.thumbnail = thumbnail;
     }
-    
+
     // ... other getters and setters
     public int getIdCourse() {
         return idCourse;
@@ -72,11 +76,11 @@ public class Course {
         this.description = description;
     }
 
-    public int getIdTeacher() {
+    public int getidTeacher() {
         return idTeacher;
     }
 
-    public void setIdTeacher(int idTeacher) {
+    public void setidTeacher(int idTeacher) {
         this.idTeacher = idTeacher;
     }
 
@@ -94,5 +98,13 @@ public class Course {
 
     public void setAssignments(List<Assignment> assignments) {
         this.assignments = assignments;
+    }
+
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
     }
 }

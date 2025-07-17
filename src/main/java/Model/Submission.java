@@ -17,19 +17,22 @@ import jakarta.persistence.Table;
 public class Submission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @Column(name = "id")
+    private int idSubmission;
 
-    // Replaced primitive ID with a direct object relationship
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignment_id", nullable = false)
+    @JoinColumn(name = "assignment_id")
     private Assignment assignment;
 
-    // Assumes a User entity exists for students
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
+    @JoinColumn(name = "student_id")
     private User student;
 
-    @Column(name = "file_url", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "lecture_id")
+    private Lecture lecture;
+
+    @Column(name = "file_url")
     private String fileUrl;
 
     @Column(name = "submission_date")
@@ -41,7 +44,6 @@ public class Submission {
     public Submission() {
     }
 
-    // Constructor updated for object relationships
     public Submission(Assignment assignment, User student, String fileUrl, LocalDateTime submissionDate) {
         this.assignment = assignment;
         this.student = student;
@@ -51,12 +53,12 @@ public class Submission {
 
     // --- Getters and Setters ---
 
-    public int getId() {
-        return id;
+    public int getIdSubmission() {
+        return idSubmission;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setIdSubmission(int idSubmission) {
+        this.idSubmission = idSubmission;
     }
 
     public Assignment getAssignment() {
@@ -73,6 +75,14 @@ public class Submission {
 
     public void setStudent(User student) {
         this.student = student;
+    }
+
+    public Lecture getLecture() {
+        return lecture;
+    }
+
+    public void setLecture(Lecture lecture) {
+        this.lecture = lecture;
     }
 
     public String getFileUrl() {

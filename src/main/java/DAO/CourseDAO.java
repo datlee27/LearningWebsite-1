@@ -1,6 +1,8 @@
 package dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -77,6 +79,98 @@ public class CourseDAO {
             if (transaction.isActive()) transaction.rollback();
             logger.log(Level.SEVERE, "Error deleting course with ID: " + courseId, e);
             throw new RuntimeException("Failed to delete course", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     *
+     * @param teacherId
+     * @return
+     */
+    public List<Course> getCoursesByTeacher(int teacherId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Course> query = em.createQuery(
+                "SELECT c FROM Course c WHERE c.idTeacher = :teacherId", Course.class);
+            query.setParameter("teacherId", teacherId);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public Map<Integer, Integer> getLessonCounts() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Object[]> results = em.createQuery(
+                "SELECT l.course.idCourse, COUNT(l.idLecture) FROM Lecture l GROUP BY l.course.idCourse",
+                Object[].class
+            ).getResultList();
+            Map<Integer, Integer> lessonCounts = new HashMap<>();
+            for (Object[] row : results) {
+                lessonCounts.put((Integer) row[0], ((Long) row[1]).intValue());
+            }
+            return lessonCounts;
+        } finally {
+            em.close();
+        }
+    }
+
+   public Map<Integer, Integer> getCompletedLectureCounts(int userId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Object[]> results = em.createQuery(
+                "SELECT l.course.idCourse, COUNT(s.idSubmission) " +
+                "FROM Submission s " +
+                "JOIN s.lecture l " +
+                "WHERE s.student.id = :userId AND s.grade IS NOT NULL " +
+                "GROUP BY l.course.idCourse",
+                Object[].class
+            )
+            .setParameter("userId", userId)
+            .getResultList();
+
+            Map<Integer, Integer> completionCounts = new HashMap<>();
+            for (Object[] row : results) {
+                completionCounts.put((Integer) row[0], ((Long) row[1]).intValue());
+            }
+            return completionCounts;
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Course> getRandomCourses(int count) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT c FROM Course c ORDER BY FUNCTION('RAND')", Course.class)
+                     .setMaxResults(count)
+                     .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public Map<Integer, Integer> getCompletedAssignmentCounts(int userId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Object[]> results = em.createQuery(
+                "SELECT l.course.idCourse, COUNT(s.idSubmission) FROM Submission s " +
+                "JOIN s.assignment a JOIN a.lecture l " +
+                "WHERE s.student.id = :userId AND s.grade IS NOT NULL " +
+                "GROUP BY l.course.idCourse",
+                Object[].class
+            )
+            .setParameter("userId", userId)
+            .getResultList();
+
+            Map<Integer, Integer> completionCounts = new HashMap<>();
+            for (Object[] row : results) {
+                completionCounts.put((Integer) row[0], ((Long) row[1]).intValue());
+            }
+            return completionCounts;
         } finally {
             em.close();
         }

@@ -95,15 +95,25 @@
         htmlElement.setAttribute('data-theme', currentTheme);
     });
 
+    function parseJwt (token) {
+        // Split the JWT and decode the payload
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
     function handleCredentialResponse(response) {
-        // Decode JWT to get user info
         const idToken = response.credential;
-        const payload = JSON.parse(atob(idToken.split('.')[1]));
+        const payload = parseJwt(idToken);
+
         const googleId = payload.sub;
         const email = payload.email;
-        const name = payload.name || "";
         const firstName = payload.given_name || "";
         const lastName = payload.family_name || "";
+        const name = payload.name || "";
 
         fetch('${pageContext.request.contextPath}/login', {
             method: 'POST',
@@ -116,7 +126,10 @@
                 idToken: idToken
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Server error');
+            return response.json();
+        })
         .then(data => {
             if (data.success && data.redirect) {
                 window.location.href = data.redirect;
@@ -127,7 +140,7 @@
             }
         })
         .catch(error => {
-            alert("Google login error: " + error);
+            alert("Login error: " + error);
         });
     }
 </script>

@@ -88,4 +88,18 @@ public class AssignmentDAO {
             em.close();
         }
     }
+
+    public void deleteByCourseId(int courseId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("DELETE FROM Assignment a WHERE a.course.id = :courseId")
+              .setParameter("courseId", courseId)
+              .executeUpdate();
+            tx.commit();
+        } finally {
+            em.close();
+        }
+    }
 }

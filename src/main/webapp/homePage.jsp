@@ -1,4 +1,4 @@
-    <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
     <!DOCTYPE html>
     <html lang="en" data-theme="light">
     <head>
@@ -51,51 +51,15 @@
                 <div class="col-md-9">
                     <h2>Featured Courses</h2>
                     <div class="row">
-                        <!-- Course Card 1 -->
-                        <div class="col-md-4 mb-4">
-                            <div class="card course-card">
-                                <img src="${pageContext.request.contextPath}/img/thumbnail1.png" class="card-img-top" alt="Course Thumbnail">
+                        <c:forEach var="course" items="${courses}">
+                            <div class="card">
+                                <img src="${pageContext.request.contextPath}/img/${course.thumbnail}" />
                                 <div class="card-body">
-                                    <h5 class="card-title">Introduction to Programming</h5>
-                                    <p class="card-text">Learn the basics of coding with this beginner-friendly course.</p>
-                                    <p><strong>Lessons:</strong> 12</p>
-                                    <div class="progress progress-container">
-                                        <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
-                                    </div>
-                                    <a href="course1.jsp" class="btn btn-primary mt-2">Start Learning</a>
+                                    <h5>${course.name}</h5>
+                                    <p>${course.description}</p>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Course Card 2 -->
-                        <div class="col-md-4 mb-4">
-                            <div class="card course-card">
-                                <img src="${pageContext.request.contextPath}/img/thumbnail2.png" class="card-img-top" alt="Course Thumbnail">
-                                <div class="card-body">
-                                    <h5 class="card-title">Web Development Basics</h5>
-                                    <p class="card-text">Build your first website with HTML, CSS, and JavaScript.</p>
-                                    <p><strong>Lessons:</strong> 15</p>
-                                    <div class="progress progress-container">
-                                        <div class="progress-bar" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">20%</div>
-                                    </div>
-                                    <a href="course2.jsp" class="btn btn-primary mt-2">Start Learning</a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Course Card 3 -->
-                        <div class="col-md-4 mb-4">
-                            <div class="card course-card">
-                                <img src="${pageContext.request.contextPath}/img/thumbnail3.png" class="card-img-top" alt="Course Thumbnail">
-                                <div class="card-body">
-                                    <h5 class="card-title">Data Science Fundamentals</h5>
-                                    <p class="card-text">Explore data analysis and visualization techniques.</p>
-                                    <p><strong>Lessons:</strong> 10</p>
-                                    <div class="progress progress-container">
-                                        <div class="progress-bar" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
-                                    </div>
-                                    <a href="course3.jsp" class="btn btn-primary mt-2">Start Learning</a>
-                                </div>
-                            </div>
-                        </div>
+                        </c:forEach>
                     </div>
                 </div>
             </div>

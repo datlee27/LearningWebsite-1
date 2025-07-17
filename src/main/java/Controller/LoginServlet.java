@@ -75,6 +75,7 @@ public class LoginServlet extends HttpServlet {
                 User user = userOpt.get();
                 session.setAttribute("user", user);
                 session.setAttribute("role", user.getRole());
+                session.setAttribute("id", user.getId());
                 out.print("{\"success\":true,\"redirect\":\"" + request.getContextPath() + "/home\"}");
             } else {
                 // Store Google info in session for registration

@@ -3,7 +3,9 @@ package controller;
 import java.io.IOException;
 import java.util.List;
 
+import dao.AssignmentDAO;
 import dao.CourseDAO;
+import dao.EnrollmentDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,13 +22,14 @@ public class CourseServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String role = (String) request.getSession().getAttribute("role");
+        int userId = (int) request.getSession().getAttribute("id");
         if (role == null || !"teacher".equals(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this page.");
             return;
         }        
-        List<Course> courses = courseDAO.getCourses();
+        List<Course> courses = courseDAO.getCoursesByTeacher(userId);
         request.setAttribute("courses", courses);
-        request.getRequestDispatcher("/view/courses.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/courses.jsp").forward(request, response);
     }
 
     @Override
@@ -60,8 +63,9 @@ public class CourseServlet extends HttpServlet {
         String description = request.getParameter("description");
         User user = (User) request.getSession().getAttribute("user");
         int teacherId = user.getId();
-        
-        Course course = new Course(name, description, teacherId);
+
+        String thumbnail = request.getParameter("thumbnail");
+        Course course = new Course(name, description, teacherId, thumbnail);
         courseDAO.saveCourse(course);
     }
 
@@ -80,6 +84,16 @@ public class CourseServlet extends HttpServlet {
 
     private void deleteCourse(HttpServletRequest request) {
         int courseId = Integer.parseInt(request.getParameter("courseId"));
+
+        // Delete related enrollments
+        EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
+        enrollmentDAO.deleteByCourseId(courseId);
+
+        // Delete related assignments (if you have AssignmentDAO)
+        AssignmentDAO assignmentDAO = new AssignmentDAO();
+        assignmentDAO.deleteByCourseId(courseId);
+
+        // Delete the course itself
         courseDAO.deleteCourse(courseId);
     }
 }

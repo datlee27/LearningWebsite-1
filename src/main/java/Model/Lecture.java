@@ -7,7 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -16,11 +15,11 @@ import jakarta.persistence.Table;
 public class Lecture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int idLecture;
 
-    // The primitive idCourse field is replaced with a direct object relationship
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "course_id")
     private Course course;
 
     @Column(name = "title")
@@ -28,10 +27,7 @@ public class Lecture {
 
     @Column(name = "video_url")
     private String videoUrl;
-    
-    // Note: The original DAO had a 'content' parameter in saveLecture, 
-    // but the entity was missing this field. I've added it here.
-    @Lob // Use @Lob for potentially large text fields
+
     @Column(name = "content")
     private String content;
 
@@ -41,7 +37,6 @@ public class Lecture {
     public Lecture() {
     }
 
-    // Constructor updated to accept a Course object
     public Lecture(Course course, String title, String content, String videoUrl, String status) {
         this.course = course;
         this.title = title;
@@ -75,7 +70,7 @@ public class Lecture {
     public void setTitle(String title) {
         this.title = title;
     }
-    
+
     public String getContent() {
         return content;
     }

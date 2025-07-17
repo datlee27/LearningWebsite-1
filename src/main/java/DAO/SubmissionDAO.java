@@ -28,7 +28,7 @@ public class SubmissionDAO {
             transaction.begin();
             em.persist(submission);
             transaction.commit();
-            logger.info("Successfully saved submission for assignment ID: " + submission.getAssignment().getIdAss());
+            logger.info("Successfully saved submission for assignment ID: " + submission.getAssignment().getIdAssignment());
             return submission;
         } catch (Exception e) {
             if (transaction.isActive()) {
@@ -53,12 +53,12 @@ public class SubmissionDAO {
             transaction.begin();
             em.merge(submission);
             transaction.commit();
-            logger.info("Successfully updated submission ID: " + submission.getId());
+            logger.info("Successfully updated submission ID: " + submission.getIdSubmission());
         } catch (Exception e) {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            logger.log(Level.SEVERE, "Error updating submission ID: " + submission.getId(), e);
+            logger.log(Level.SEVERE, "Error updating submission ID: " + submission.getIdSubmission(), e);
             throw new RuntimeException("Failed to update submission", e);
         } finally {
             em.close();

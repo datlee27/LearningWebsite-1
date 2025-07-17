@@ -13,12 +13,12 @@
         <class>model.Submission</class>
         <class>model.Enrollment</class>
         <class>model.UserActivity</class> <properties>
-            <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlserver://DESKTOP-K1G0NLR:1433;databaseName=learning_management;encrypt=false"/>
-            <property name="jakarta.persistence.jdbc.user" value="sa"/>
-            <property name="jakarta.persistence.jdbc.password" value="Khoinguyen0504@"/>
+            <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/learning_management?useSSL=false&amp;serverTimezone=UTC"/>
+            <property name="jakarta.persistence.jdbc.user" value="root"/>
+            <property name="jakarta.persistence.jdbc.password" value="DBProject@"/>
             
-            <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
             
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>

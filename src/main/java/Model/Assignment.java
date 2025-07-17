@@ -17,14 +17,16 @@ import jakarta.persistence.Table;
 public class Assignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idAss;
+    @Column(name = "id")
+    private int idAssignment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "course_id")
     private Course course;
 
-    @Column(name = "lecture_id")
-    private Integer idLecture;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lecture_id")
+    private Lecture lecture;
 
     @Column(name = "title")
     private String title;
@@ -36,26 +38,26 @@ public class Assignment {
     private LocalDateTime dueDate;
 
     @Column(name = "status")
-    private String status; // No @Enumerated
+    private String status;
 
     public Assignment() {
     }
 
-    public Assignment(Course course, Integer idLecture, String title, String description, LocalDateTime dueDate, String status) {
+    public Assignment(Course course, Lecture lecture, String title, String description, LocalDateTime dueDate, String status) {
         this.course = course;
-        this.idLecture = idLecture;
+        this.lecture = lecture;
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
         this.status = status;
     }
 
-    public int getIdAss() {
-        return idAss;
+    public int getIdAssignment() {
+        return idAssignment;
     }
 
-    public void setIdAss(int idAss) {
-        this.idAss = idAss;
+    public void setIdAssignment(int idAssignment) {
+        this.idAssignment = idAssignment;
     }
 
     public Course getCourse() {
@@ -66,12 +68,12 @@ public class Assignment {
         this.course = course;
     }
 
-    public Integer getIdLecture() {
-        return idLecture;
+    public Lecture getLecture() {
+        return lecture;
     }
 
-    public void setIdLecture(Integer idLecture) {
-        this.idLecture = idLecture;
+    public void setLecture(Lecture lecture) {
+        this.lecture = lecture;
     }
 
     public String getTitle() {
