@@ -23,6 +23,11 @@ public class AssignmentServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        String role = (String) request.getSession().getAttribute("role");
+        if (role == null || !"teacher".equals(role)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this page.");
+            return;
+        }
         int courseId = Integer.parseInt(request.getParameter("courseId"));
         List<Assignment> assignments = assignmentDAO.getAssignmentsByCourse(courseId);
         request.setAttribute("assignments", assignments);
@@ -64,8 +69,9 @@ public class AssignmentServlet extends HttpServlet {
 
         Course course = courseDAO.findCourseById(courseId)
                 .orElseThrow(() -> new ServletException("Course not found"));
-        
-        Assignment assignment = new Assignment(course, null, title, description, dueDate, "active");
+
+        // Use a default status string, e.g. "not yet"
+        Assignment assignment = new Assignment(course, null, title, description, dueDate, "not yet");
         assignmentDAO.saveAssignment(assignment);
     }
 
@@ -74,6 +80,7 @@ public class AssignmentServlet extends HttpServlet {
         String title = request.getParameter("title");
         String description = request.getParameter("description");
         LocalDateTime dueDate = LocalDateTime.parse(request.getParameter("dueDate"), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String status = request.getParameter("status"); // Should be "not yet", "in progress", or "ended"
 
         Assignment assignment = assignmentDAO.getAssignmentById(assignmentId)
                 .orElseThrow(() -> new ServletException("Assignment not found"));
@@ -81,6 +88,7 @@ public class AssignmentServlet extends HttpServlet {
         assignment.setTitle(title);
         assignment.setDescription(description);
         assignment.setDueDate(dueDate);
+        if (status != null) assignment.setStatus(status);
         assignmentDAO.updateAssignment(assignment);
     }
 

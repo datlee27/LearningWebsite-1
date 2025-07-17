@@ -1,5 +1,9 @@
 package controller;
 
+import java.io.IOException;
+
+import org.mindrot.jbcrypt.BCrypt;
+
 import dao.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -7,33 +11,59 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.User;
-import org.mindrot.jbcrypt.BCrypt;
 
-import java.io.IOException;
-
-@WebServlet(name = "RegisterServlet", urlPatterns = {"/register"})
+@WebServlet(name = "RegisterServlet", urlPatterns = "/register")
 public class RegisterServlet extends HttpServlet {
     private final UserDAO userDAO = new UserDAO();
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Redirect to registration page
+        request.getRequestDispatcher("register.jsp").forward(request, response);
+    }
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String username = request.getParameter("username");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String firstName = request.getParameter("first_name");
+        String lastName = request.getParameter("last_name");
         String role = request.getParameter("role");
+        // Check if Google ID is present for Google registration
+        String googleId = (String) request.getSession().getAttribute("tempGoogleId");
 
-        // Hash the password
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        if (email == null || username == null || (password == null && googleId == null)) {
+            request.setAttribute("message", "All required fields must be filled.");
+            request.getRequestDispatcher("register.jsp").forward(request, response);
+            return;
+        }
 
-        User user = new User(username, hashedPassword, email, role, null);
+        // Check if user already exists
+        if (userDAO.findByEmailOrUsername(email).isPresent()) {
+            request.setAttribute("message", "Email is already registered.");
+            request.getRequestDispatcher("register.jsp").forward(request, response);
+            return;
+        }
+
+        // Hash password if not Google registration
+        String hashedPassword = (googleId == null) ? BCrypt.hashpw(password, BCrypt.gensalt()) : "";
+
+        User user = new User(username, hashedPassword, email, role, googleId);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
 
         try {
             userDAO.save(user);
-            response.sendRedirect(request.getContextPath() + "/view/signIn.jsp?success=true");
+            request.getSession().removeAttribute("tempGoogleId");
+            request.getSession().removeAttribute("tempGoogleEmail");
+            request.setAttribute("message", "Registration successful! Please log in.");
         } catch (Exception e) {
-            request.setAttribute("error", "Registration failed. The username or email might already be taken.");
-            request.getRequestDispatcher("/view/signUp.jsp").forward(request, response);
+            request.setAttribute("message", "Registration failed: " + e.getMessage());
         }
+        request.getRequestDispatcher("register.jsp").forward(request, response);
     }
+
 }

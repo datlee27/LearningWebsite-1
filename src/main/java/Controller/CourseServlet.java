@@ -19,6 +19,11 @@ public class CourseServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        String role = (String) request.getSession().getAttribute("role");
+        if (role == null || !"teacher".equals(role)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this page.");
+            return;
+        }        
         List<Course> courses = courseDAO.getCourses();
         request.setAttribute("courses", courses);
         request.getRequestDispatcher("/view/courses.jsp").forward(request, response);

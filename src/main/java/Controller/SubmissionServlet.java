@@ -1,6 +1,16 @@
 package controller;
 
-import dao.*;// Assuming you have a UserDAO
+import java.io.File;// Assuming you have a UserDAO
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+
+import dao.AssignmentDAO;
+import dao.SubmissionDAO;
+import dao.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,14 +21,6 @@ import jakarta.servlet.http.Part;
 import model.Assignment;
 import model.Submission;
 import model.User;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 
 @WebServlet(name = "SubmissionServlet", urlPatterns = {"/submit"})
 @MultipartConfig(
@@ -41,7 +43,7 @@ public class SubmissionServlet extends HttpServlet {
 
         // 1. Get Form Data
         int assignmentId = Integer.parseInt(request.getParameter("assignmentId"));
-        int studentId = Integer.parseInt(request.getParameter("studentId")); // Or get from session
+        int studentId = ((User) request.getSession().getAttribute("user")).getId();
         Part filePart = request.getPart("submissionFile");
 
         // 2. Handle File Upload

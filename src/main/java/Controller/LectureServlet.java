@@ -21,6 +21,11 @@ public class LectureServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        String role = (String) request.getSession().getAttribute("teacher");
+        if (role == null || !"teacher".equals(role)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this page.");
+            return;
+        }
         int courseId = Integer.parseInt(request.getParameter("courseId"));
         List<Lecture> lectures = lectureDAO.getLecturesByCourse(courseId);
         request.setAttribute("lectures", lectures);

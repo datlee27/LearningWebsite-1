@@ -29,7 +29,6 @@ CREATE TABLE Lectures (
     course_id INT,
     title NVARCHAR(100) NOT NULL,
     video_url VARCHAR(255) NOT NULL,
-    status VARCHAR(10) CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
     FOREIGN KEY (course_id) REFERENCES Courses(id)
 );
 
@@ -40,7 +39,7 @@ CREATE TABLE Assignments (
     title NVARCHAR(100) NOT NULL,
     description NVARCHAR(MAX),
     due_date DATETIME,
-    status VARCHAR(10) CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+    status VARCHAR(10) CHECK (status IN ('not yet', 'in progress', 'ended')) DEFAULT 'not yet',
     FOREIGN KEY (course_id) REFERENCES Courses(id),
     FOREIGN KEY (lecture_id) REFERENCES Lectures(id)
 );
@@ -94,18 +93,18 @@ INSERT INTO Courses (name, description, teacher_id) VALUES
 ('Trí tuệ nhân tạo', 'Giới thiệu về AI và Machine Learning', 8);
 
 -- Sample Lectures
-INSERT INTO Lectures (course_id, title, video_url, status) VALUES
-(1, 'Biến và kiểu dữ liệu', 'https://video.hocmai.vn/python_variables.mp4', 'approved'),
-(2, 'Giới thiệu về SQL', 'https://video.hocmai.vn/sql_intro.mp4', 'approved'),
-(2, 'Truy vấn dữ liệu', 'https://video.hocmai.vn/sql_query.mp4', 'approved'),
-(3, 'Giới thiệu về AI', 'https://video.hocmai.vn/ai_intro.mp4', 'approved'),
-(3, 'Machine Learning cơ bản', 'https://video.hocmai.vn/ml_basic.mp4', 'approved');
+INSERT INTO Lectures (course_id, title, video_url) VALUES
+(1, 'Biến và kiểu dữ liệu', 'https://video.hocmai.vn/python_variables.mp4'),
+(2, 'Giới thiệu về SQL', 'https://video.hocmai.vn/sql_intro.mp4'),
+(2, 'Truy vấn dữ liệu', 'https://video.hocmai.vn/sql_query.mp4'),
+(3, 'Giới thiệu về AI', 'https://video.hocmai.vn/ai_intro.mp4'),
+(3, 'Machine Learning cơ bản', 'https://video.hocmai.vn/ml_basic.mp4');
 
 -- Sample Assignments
 INSERT INTO Assignments (course_id, lecture_id, title, description, due_date, status) VALUES
-(1, 1, 'Bài tập Python', 'Viết chương trình Python tính tổng các số từ 1 đến 100', '2024-06-24 23:59:59', 'approved'),
-(2, 2, 'Bài tập SQL', 'Viết truy vấn SQL lấy danh sách học sinh', '2024-06-25 23:59:59', 'approved'),
-(3, 3, 'Bài tập AI', 'Trình bày ứng dụng AI trong thực tế', '2024-06-26 23:59:59', 'approved');
+(1, 1, 'Bài tập Python', 'Viết chương trình Python tính tổng các số từ 1 đến 100', '2024-06-24 23:59:59', 'in progress'),
+(2, 2, 'Bài tập SQL', 'Viết truy vấn SQL lấy danh sách học sinh', '2024-06-25 23:59:59', 'in progress'),
+(3, 3, 'Bài tập AI', 'Trình bày ứng dụng AI trong thực tế', '2024-06-26 23:59:59', 'in progress');
 
 -- Sample Enrollments
 INSERT INTO Enrollments (student_id, course_id, enrollment_date, status) VALUES
