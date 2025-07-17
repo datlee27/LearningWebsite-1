@@ -76,7 +76,7 @@
                                 <ul class="dropdown-menu" aria-labelledby="userDropdown">
                                     <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person-fill me-2"></i>Profile</a></li>
                                     <li><a class="dropdown-item" href="${pageContext.request.contextPath}/view/settings.jsp"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
-                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logOut.jsp"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/LogoutServlet"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                                 </ul>
                             </div>
                         <% } %>
