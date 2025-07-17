@@ -42,7 +42,7 @@
                 <% String role = (String) session.getAttribute("role"); %>
                 <% if ("teacher".equals(role)) { %>                         
                     <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/courses">Course List </a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/myClassroom">My Classroom</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/assignments">Grade Assignments</a>

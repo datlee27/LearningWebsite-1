@@ -47,21 +47,34 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Student Name</th>
+                        <th>Student Username</th>
+                        <th>Full Name</th>
                         <th>Email</th>
+                        <th>Grade</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <c:forEach var="student" items="${students}">
                         <tr>
-                            <td>${student.name}</td>
+                            <td>${student.username}</td>
+                            <td>${student.firstName} ${student.lastName}</td>
                             <td>${student.email}</td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${studentGrades[student.id] != null}">
+                                        ${studentGrades[student.id]}
+                                    </c:when>
+                                    <c:otherwise>
+                                        N/A
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
                             <td>
                                 <form method="post" action="${pageContext.request.contextPath}/students" style="display:inline;">
                                     <input type="hidden" name="action" value="remove">
                                     <input type="hidden" name="courseId" value="${selectedCourse.idCourse}">
-                                    <input type="hidden" name="studentId" value="${student.idStudent}">
+                                    <input type="hidden" name="studentId" value="${student.id}">
                                     <button type="submit" class="btn btn-danger btn-sm">Remove</button>
                                 </form>
                             </td>

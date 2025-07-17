@@ -175,4 +175,17 @@ public class CourseDAO {
             em.close();
         }
     }
+
+    public List<Course> getEnrolledCourses(int userId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT e.course FROM Enrollment e WHERE e.student.id = :userId",
+                Course.class
+            ).setParameter("userId", userId)
+             .getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }

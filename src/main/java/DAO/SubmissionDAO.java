@@ -102,4 +102,40 @@ public class SubmissionDAO {
             em.close();
         }
     }
+
+    public List<Submission> getSubmissionsByStudent(int studentId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Submission> query = em.createQuery(
+                "SELECT s FROM Submission s WHERE s.student.idUser = :studentId",
+                Submission.class    
+            );
+            query.setParameter("studentId", studentId);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving submissions for student ID: " + studentId,
+                e);
+            return Collections.emptyList(); 
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Submission> getSubmissionsByStudentAndCourse(int studentId, int courseId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Submission> query = em.createQuery(
+                "SELECT s FROM Submission s WHERE s.student.idUser = :studentId AND s.assignment.course.idCourse = :courseId",
+                Submission.class
+            );
+            query.setParameter("studentId", studentId);
+            query.setParameter("courseId", courseId);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving submissions for student ID: " + studentId + " and course ID: " + courseId, e);
+            return Collections.emptyList();
+        } finally {
+            em.close();
+        }
+    }
 }

@@ -96,9 +96,9 @@ INSERT INTO Lectures (course_id, title, video_url) VALUES
 
 -- Example enrollments
 INSERT INTO Enrollments (student_id, course_id, status) VALUES
-(2, 1, 'enrolled'),
-(2, 2, 'enrolled'),
-(2, 3, 'enrolled');
+(1, 1, 'enrolled'),
+(1, 2, 'enrolled'),
+(1, 3, 'enrolled');
 
 -- Example submissions
 INSERT INTO Submissions (assignment_id, student_id, file_url, submission_date, grade) VALUES

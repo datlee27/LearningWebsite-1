@@ -1,11 +1,14 @@
 package dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import model.Enrollment;
+import model.Submission;
 import model.User;
 
 public class StudentDAO {
@@ -72,5 +75,23 @@ public class StudentDAO {
         } finally {
             em.close();
         }
+    }
+
+    // Get student grades for a specific course
+    public Map<Integer, Double> getStudentGrades(List<User> students, model.Course selectedCourse) {
+        Map<Integer, Double> studentGrades = new HashMap<>();
+        SubmissionDAO submissionDAO = new SubmissionDAO();
+        if (selectedCourse != null && students != null) {
+            for (User student : students) {
+                List<Submission> submissions = submissionDAO.getSubmissionsByStudentAndCourse(student.getId(), selectedCourse.getIdCourse());
+                double avg = submissions.stream()
+                    .filter(s -> s.getGrade() != null)
+                    .mapToDouble(Submission::getGrade)
+                    .average()
+                    .orElse(Double.NaN);
+                studentGrades.put(student.getId(), Double.isNaN(avg) ? null : avg);
+            }
+        }
+        return studentGrades;
     }
 }
