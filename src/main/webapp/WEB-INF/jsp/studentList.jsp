@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/homePage.css"/>
 </head>
 <body>
-<jsp:include page="/navbar.jsp" />
+<jsp:include page="navbar.jsp" />
 
 <!-- Exception output block -->
 <c:if test="${not empty exception}">

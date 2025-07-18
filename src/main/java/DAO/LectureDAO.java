@@ -88,4 +88,40 @@ public class LectureDAO {
             em.close();
         }
     }
+
+    public List<Lecture> getLecturesByCourseForTeacher(int courseId, int teacherId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Lecture> query = em.createQuery(
+                "SELECT l FROM Lecture l WHERE l.course.idCourse = :courseId AND l.course.teacherId = :teacherId AND l.status = 'active'",
+                Lecture.class
+            );
+            query.setParameter("courseId", courseId);
+            query.setParameter("teacherId", teacherId);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving lectures for course ID: " + courseId + " and teacher ID: " + teacherId, e);
+            return Collections.emptyList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Lecture> getLecturesByCourseForStudent(int courseId, int studentId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Lecture> query = em.createQuery(
+                "SELECT l FROM Lecture l JOIN l.course.enrollments e WHERE l.course.idCourse = :courseId AND e.student.idUser = :studentId AND l.status = 'active'",
+                Lecture.class
+            );
+            query.setParameter("courseId", courseId);
+            query.setParameter("studentId", studentId);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving lectures for course ID: " + courseId + " and student ID: " + studentId, e);
+            return Collections.emptyList();
+        } finally {
+            em.close();
+        }
+    }
 }

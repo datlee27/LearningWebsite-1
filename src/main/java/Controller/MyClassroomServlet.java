@@ -42,14 +42,14 @@ public class MyClassroomServlet extends HttpServlet {
                 courses = new CourseDAO().getCoursesByTeacher(userId);
             } else {
                 // Student: show enrolled courses
-                courses = new CourseDAO().getEnrolledCourses(userId);
+                courses = new CourseDAO().getCoursesByStudent(userId);
             }
             request.setAttribute("courses", courses);
         } else {
             // For assignments/lectures, dropdown shows enrolled (student) or taught (teacher) courses
             List<Course> courses = canCrud
                 ? new CourseDAO().getCoursesByTeacher(userId)
-                : new CourseDAO().getEnrolledCourses(userId);
+                : new CourseDAO().getCoursesByStudent(userId);
             request.setAttribute("courses", courses);
 
             String courseIdParam = request.getParameter("courseId");
@@ -69,7 +69,7 @@ public class MyClassroomServlet extends HttpServlet {
             }
         }
 
-        request.getRequestDispatcher("/WEB-INF/myClassroom.jsp").forward(request, response);
+        request.getRequestDispatcher("WEB-INF/jsp/myClassroom.jsp").forward(request, response);
     }
 
     private int getCurrentUserId(HttpServletRequest request) throws ServletException {

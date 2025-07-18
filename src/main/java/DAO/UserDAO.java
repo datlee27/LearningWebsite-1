@@ -17,7 +17,7 @@ public class UserDAO {
         EntityTransaction transaction = em.getTransaction();
         try {
             transaction.begin();
-            em.persist(user);
+            em.merge(user); // merge works for both new and existing users
             transaction.commit();
         } catch (Exception e) {
             if (transaction.isActive()) transaction.rollback();

@@ -1,7 +1,9 @@
 package dao;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -9,6 +11,7 @@ import java.util.logging.Logger;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
+import model.Assignment;
 import model.Submission;
 
 public class SubmissionDAO {
@@ -137,5 +140,37 @@ public class SubmissionDAO {
         } finally {
             em.close();
         }
+    }
+
+    // For teacher: Map assignmentId -> List<Submission>
+    public Map<Integer, List<Submission>> getSubmissionsByAssignments(List<Assignment> assignments) {
+        Map<Integer, List<Submission>> result = new HashMap<>();
+        for (Assignment assignment : assignments) {
+            result.put(assignment.getIdAssignment(), getSubmissionsByAssignment(assignment.getIdAssignment()));
+        }
+        return result;
+    }
+
+    // For student: Map assignmentId -> Submission
+    public Map<Integer, Submission> getSubmissionsByStudentAndAssignments(int studentId, List<Assignment> assignments) {
+        Map<Integer, Submission> result = new HashMap<>();
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            for (Assignment assignment : assignments) {
+                TypedQuery<Submission> query = em.createQuery(
+                    "SELECT s FROM Submission s WHERE s.assignment.idAssignment = :assignmentId AND s.student.idUser = :studentId",
+                    Submission.class
+                );
+                query.setParameter("assignmentId", assignment.getIdAssignment());
+                query.setParameter("studentId", studentId);
+                List<Submission> submissions = query.getResultList();
+                if (!submissions.isEmpty()) {
+                    result.put(assignment.getIdAssignment(), submissions.get(0));
+                }
+            }
+        } finally {
+            em.close();
+        }
+        return result;
     }
 }

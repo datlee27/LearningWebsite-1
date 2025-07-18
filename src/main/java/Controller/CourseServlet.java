@@ -1,17 +1,22 @@
 package controller;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import dao.AssignmentDAO;
 import dao.CourseDAO;
 import dao.EnrollmentDAO;
+import dao.LectureDAO;
+import dao.UserProgressDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Course;
+import model.Lecture;
 import model.User;
 
 @WebServlet(name = "CourseServlet", urlPatterns = {"/courses"})
@@ -23,13 +28,34 @@ public class CourseServlet extends HttpServlet {
             throws ServletException, IOException {
         String role = (String) request.getSession().getAttribute("role");
         int userId = (int) request.getSession().getAttribute("id");
-        if (role == null || !"teacher".equals(role)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this page.");
+        List<Course> courses;
+        if ("teacher".equals(role)) {
+            courses = courseDAO.getCoursesByTeacher(userId);
+        } else if ("student".equals(role)) {
+            courses = courseDAO.getCoursesByStudent(userId);
+        } else {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
-        }        
-        List<Course> courses = courseDAO.getCoursesByTeacher(userId);
+        }
+
+        UserProgressDAO progressDAO = new UserProgressDAO();
+        LectureDAO lectureDAO = new LectureDAO();
+        Map<Integer, Integer> lastLectureMap = new HashMap<>();
+        for (Course course : courses) {
+            Integer lastLectureId = progressDAO.getLastStudiedLectureId(userId, course.getIdCourse());
+            if (lastLectureId == null) {
+                // fallback to first lecture
+                List<Lecture> lectures = lectureDAO.getLecturesByCourseForStudent(course.getIdCourse(), userId);
+                if (!lectures.isEmpty()) {
+                    lastLectureId = lectures.get(0).getIdLecture();
+                }
+            }
+            lastLectureMap.put(course.getIdCourse(), lastLectureId);
+        }
         request.setAttribute("courses", courses);
-        request.getRequestDispatcher("/WEB-INF/courses.jsp").forward(request, response);
+        request.setAttribute("lastLectureMap", lastLectureMap);
+        request.setAttribute("role", role);
+        request.getRequestDispatcher("WEB-INF/jsp/courseList.jsp").forward(request, response);
     }
 
     @Override

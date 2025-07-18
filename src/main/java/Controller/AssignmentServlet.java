@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 import dao.AssignmentDAO;
 import dao.CourseDAO;
+import dao.LectureDAO;
+import dao.SubmissionDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,25 +17,39 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Assignment;
 import model.Course;
+import model.Submission;
 
 @WebServlet(name = "AssignmentServlet", urlPatterns = {"/assignments"})
 public class AssignmentServlet extends HttpServlet {
     private final AssignmentDAO assignmentDAO = new AssignmentDAO();
     private final CourseDAO courseDAO = new CourseDAO();
+    private final LectureDAO lectureDAO = new LectureDAO();
+    private final SubmissionDAO submissionDAO = new SubmissionDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String role = (String) request.getSession().getAttribute("role");
-        if (role == null || !"teacher".equals(role)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this page.");
+        int userId = (int) request.getSession().getAttribute("id");
+        int lectureId = Integer.parseInt(request.getParameter("lectureId"));
+
+        List<Assignment> assignments = assignmentDAO.getAssignmentsByLecture(lectureId);
+        request.setAttribute("assignments", assignments);
+
+        if ("teacher".equals(role)) {
+            // Optionally, load all submissions for these assignments
+            Map<Integer, List<Submission>> submissions = submissionDAO.getSubmissionsByAssignments(assignments);
+            request.setAttribute("submissions", submissions);
+        } else if ("student".equals(role)) {
+            // Load student's submissions for these assignments
+            Map<Integer, model.Submission> mySubmissions = submissionDAO.getSubmissionsByStudentAndAssignments(userId, assignments);
+            request.setAttribute("mySubmissions", mySubmissions);
+        } else {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-        int courseId = Integer.parseInt(request.getParameter("courseId"));
-        List<Assignment> assignments = assignmentDAO.getAssignmentsByCourse(courseId);
-        request.setAttribute("assignments", assignments);
-        request.setAttribute("courseId", courseId);
-        request.getRequestDispatcher("/view/assignments.jsp").forward(request, response);
+        request.setAttribute("role", role);
+        request.getRequestDispatcher("WEB-INF/jsp/assignmentList.jsp").forward(request, response);
     }
 
     @Override

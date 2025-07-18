@@ -41,10 +41,10 @@ public class StudentServlet extends HttpServlet {
             request.setAttribute("selectedCourse", selectedCourse);
             request.setAttribute("students", students);
 
-            request.getRequestDispatcher("/WEB-INF/studentList.jsp").forward(request, response);
+            request.getRequestDispatcher("WEB-INF/jsp/studentList.jsp").forward(request, response);
         } catch (Exception e) {
             request.setAttribute("exception", e);
-            request.getRequestDispatcher("/WEB-INF/studentList.jsp").forward(request, response);
+            request.getRequestDispatcher("WEB-INF/jsp/studentList.jsp").forward(request, response);
         }
     }
 

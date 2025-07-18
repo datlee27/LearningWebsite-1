@@ -176,7 +176,8 @@ public class CourseDAO {
         }
     }
 
-    public List<Course> getEnrolledCourses(int userId) {
+
+    public List<Course> getCoursesByStudent(int userId) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             return em.createQuery(
@@ -184,6 +185,15 @@ public class CourseDAO {
                 Course.class
             ).setParameter("userId", userId)
              .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Course> getAllCourses() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT c FROM Course c", Course.class).getResultList();
         } finally {
             em.close();
         }

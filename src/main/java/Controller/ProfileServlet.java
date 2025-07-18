@@ -32,7 +32,7 @@ public class ProfileServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         // Set user fields for profile edit
@@ -43,8 +43,6 @@ public class ProfileServlet extends HttpServlet {
         request.setAttribute("address", user.getAddress());
         request.setAttribute("school", user.getSchool());
         request.setAttribute("username", user.getUsername());
-        request.setAttribute("email", user.getEmail());
-        request.setAttribute("googleId", user.getGoogleId());
 
         List<UserActivity> activities = activityDAO.getUserActivities(user);
         request.setAttribute("userActivities", activities);
@@ -70,7 +68,7 @@ public class ProfileServlet extends HttpServlet {
         request.setAttribute("currentMonth", today.getMonthValue());
         request.setAttribute("currentYear", today.getYear());
 
-        request.getRequestDispatcher("/WEB-INF/profile.jsp").forward(request, response);
+        request.getRequestDispatcher("WEB-INF/jsp/profile.jsp").forward(request, response);
     }
 
     @Override
@@ -79,7 +77,7 @@ public class ProfileServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         // Get updated fields from form
@@ -90,7 +88,8 @@ public class ProfileServlet extends HttpServlet {
         user.setAddress(request.getParameter("address"));
         user.setSchool(request.getParameter("school"));
         user.setUsername(request.getParameter("username"));
-        user.setEmail(request.getParameter("email"));
+        // Do NOT update email: user.setEmail(...) is intentionally omitted
+
 
         userDAO.save(user); // Assumes save() does update if entity has ID
         session.setAttribute("user", user);
@@ -103,7 +102,6 @@ public class ProfileServlet extends HttpServlet {
         request.setAttribute("address", user.getAddress());
         request.setAttribute("school", user.getSchool());
         request.setAttribute("username", user.getUsername());
-        request.setAttribute("email", user.getEmail());
 
         request.setAttribute("message", "Profile updated successfully.");
         List<UserActivity> activities = activityDAO.getUserActivities(user);
@@ -138,6 +136,6 @@ public class ProfileServlet extends HttpServlet {
             ", school=" + user.getSchool() +
             ", googleId=" + user.getGoogleId());
 
-        request.getRequestDispatcher("/WEB-INF/profile.jsp").forward(request, response);
+        request.getRequestDispatcher("WEB-INF/jsp/profile.jsp").forward(request, response);
     }
 }

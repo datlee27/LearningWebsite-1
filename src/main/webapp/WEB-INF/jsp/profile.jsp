@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -49,19 +50,59 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             padding: 2rem;
         }
-        .activity-calendar { display: grid; grid-template-columns: repeat(7, 32px); gap: 6px; }
-        .activity-cell { width: 32px; height: 32px; border: 2px solid #222; border-radius: 4px; background: #fff; display: inline-block; }
-        .activity-cell.active { background: #90ee90; }
+        .activity-calendar {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 48px); /* 1st col for month, then Sun-Sat */
+            gap: 16px;
+            align-items: center;
+        }
+        .month-label {
+            grid-column: 1 / 2;
+            text-align: left;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #007bff;
+            align-self: center;
+            justify-self: left;
+            writing-mode: vertical-lr;
+            padding-left: 8px;
+            border-left: 4px solid #007bff;
+            height: 100%;
+        }
+        .month-separator {
+            grid-column: 1 / span 8;
+            border-bottom: 2px solid #bbb;
+            margin: 12px 0;
+            height: 0;
+        }
+        .activity-cell {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #222;
+            border-radius: 8px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            position: relative;
+            grid-column: auto;
+        }
         .activity-cell.active-high { background: #ffcccc; }
         .activity-cell.active-mid { background: #ffffcc; }
         .activity-cell.active-low { background: #ccffcc; }
+        .weekday-header {
+            font-weight: bold;
+            text-align: center;
+            grid-row: 1;
+        }
         @media (max-width: 900px) {
             .profile-container { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-<jsp:include page="/navbar.jsp" />
+<jsp:include page="navbar.jsp" />
 
 <div class="container profile-container">
     <div class="profile-form-card">
@@ -72,6 +113,14 @@
                     ${message}
                 </div>
             </c:if>
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" value="${username}" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" value="${user.email}" readonly>
+            </div>
             <div class="row mb-3">
                 <div class="col">
                     <label for="firstName" class="form-label">First Name</label>
@@ -87,10 +136,10 @@
                 <div class="col">
                     <div class="btn-group w-100" role="group">
                         <input type="radio" class="btn-check" name="gender" id="male" value="Male"
-                            ${gender == 'Male' ? 'checked' : ''}>
+                            ${gender == 'Male' ? 'checked="checked"' : ''}>
                         <label class="btn btn-outline-primary" for="male">Male</label>
                         <input type="radio" class="btn-check" name="gender" id="female" value="Female"
-                            ${gender == 'Female' ? 'checked' : ''}>
+                            ${gender == 'Female' ? 'checked="checked"' : ''}>
                         <label class="btn btn-outline-primary" for="female">Female</label>
                     </div>
                 </div>
@@ -109,7 +158,7 @@
             </div>
 
             <!-- Update Password (skip for Google users) -->
-            <c:if test="${empty googleId}">
+            <c:if test="${empty user.googleId}">
                 <hr>
                 <h4 class="mb-3">Update Password</h4>
                 <div class="mb-3">
@@ -128,38 +177,6 @@
 
             <button type="submit" class="btn btn-success mt-2">Update</button>
         </form>
-    </div>
-    <div class="activity-card">
-        <h2 class="mb-4 fw-bold">Your Activity</h2>
-        <div class="activity-calendar mb-3">
-            <c:forEach var="offset" begin="-15" end="14">
-                <c:set var="dateObj" value="${activityDateMap[offset]}" />
-                <c:set var="total" value="${activityTotals[dateObj.dateKey]}" />
-                <!-- Show month name if not current month or at first cell -->
-                <c:if test="${offset == -15 || dateObj.month != currentMonth}">
-                    <div class="w-100 text-center fw-bold mt-2 mb-1">${dateObj.monthName}</div>
-                </c:if>
-                <c:choose>
-                    <c:when test="${total >= 120}">
-                        <div class="activity-cell active-high">
-                    </c:when>
-                    <c:when test="${total >= 30}">
-                        <div class="activity-cell active-mid">
-                    </c:when>
-                    <c:when test="${total > 0}">
-                        <div class="activity-cell active-low">
-                    </c:when>
-                    <c:otherwise>
-                        <div class="activity-cell">
-                    </c:otherwise>
-                </c:choose>
-                    <span class="visually-hidden">${dateObj.day}/${dateObj.month}/${dateObj.year}</span>
-                    <c:if test="${offset == 0}">
-                        <span style="font-size:10px;color:#888;">●</span>
-                    </c:if>
-                </div>
-            </c:forEach>
-        </div>
     </div>
 </div>
 <!-- Debug block: print all key attributes -->

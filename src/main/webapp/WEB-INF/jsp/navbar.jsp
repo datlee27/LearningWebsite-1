@@ -1,3 +1,4 @@
+<%@ page import="jakarta.servlet.http.HttpSession" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -19,9 +20,9 @@
 
 
 <!-- Navigation Menu -->
-<nav class="navbar navbar-expand-lg navbar-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="${pageContext.request.contextPath}/home">
+       <a class="navbar-brand" href="${pageContext.request.contextPath}/home">
             <div class="book-icon-container">
                 <i class="fas fa-book-open book-icon" ></i>
                 <div class="play-button" >
@@ -37,48 +38,49 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="${pageContext.request.contextPath}/home">Home</a>
+                    <a class="nav-link" href="${pageContext.request.contextPath}/home">Home</a>
                 </li>
-                <% String role = (String) session.getAttribute("role"); %>
-                <% if ("teacher".equals(role)) { %>                         
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/myClassroom">My Classroom</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/assignments">Grade Assignments</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/students">Student List</a>
-                    </li>
-                <% } else { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/courses">Courses</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Roadmap</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Practice</a>
-                    </li>
-                <% } %>
+                <c:choose>
+                    <c:when test="${loggedIn}">
+                        <li class="nav-item">
+                            <a class="nav-link" href="${pageContext.request.contextPath}/courses">My Courses</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="${pageContext.request.contextPath}/browse">Browse</a>
+                        </li>
+                        <c:if test="${role == 'teacher'}">
+                            <li class="nav-item">
+                                <a class="nav-link" href="${pageContext.request.contextPath}/students">Student List</a>
+                            </li>
+                        </c:if>
+                    </c:when>
+                    <c:otherwise>
+                        <li class="nav-item">
+                            <a class="nav-link" href="${pageContext.request.contextPath}/browse">Browse</a>
+                        </li>
+                    </c:otherwise>
+                </c:choose>
             </ul>
             <!-- User Profile, Sign In, Sign Up, Logout, and Theme Toggle -->
             <div class="d-flex align-items-center">
-                <% if (role == null) { %>
-                    <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-outline-primary me-2">Sign In</a>
-                    <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-outline-success me-2">Sign Up</a>
-                <% } else { %>
-                    <div class="user-icon position-relative dropdown">
-                        <button class="btn btn-outline-primary me-2 dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; background: none;">
-                            <i class="bi bi-person-circle"></i>
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person-fill me-2"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/view/settings.jsp"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
-                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/LogoutServlet"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                        </ul>
-                    </div>
-                <% } %>
+                <c:choose>
+                    <c:when test="${empty role}">
+                        <a href="${pageContext.request.contextPath}/login" class="btn btn-outline-primary me-2">Sign In</a>
+                        <a href="${pageContext.request.contextPath}/register" class="btn btn-outline-success me-2">Sign Up</a>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="user-icon position-relative dropdown">
+                            <button class="btn btn-outline-primary me-2 dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; background: none;">
+                                <i class="bi bi-person-circle"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person-fill me-2"></i>Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/LogoutServlet"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
                 <button id="theme-toggle" class="btn btn-outline-secondary" title="Toggle Theme">
                     <i class="bi bi-sun-fill"></i>
                 </button>

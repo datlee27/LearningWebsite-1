@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <jsp:include page="/navbar.jsp" />
+    <jsp:include page="navbar.jsp" />
     <div class="container-fluid mt-4">
         <div class="row">
             <!-- Sidebar -->
@@ -56,6 +56,17 @@
                                             <h5 class="card-title">${c.name}</h5>
                                             <p class="card-text">${c.description}</p>
                                             <div class="mt-auto">
+                                                <c:if test="${section == 'courses'}">
+                                                    <div class="row g-4">
+                                                        <c:forEach var="course" items="${courses}">
+                                                            <div class="col-md-6 col-lg-4">
+                                                                <a href="${pageContext.request.contextPath}/lectures?courseId=${course.idCourse}" class="btn btn-primary">
+                                                                    View Course
+                                                                </a>
+                                                            </div>
+                                                        </c:forEach>
+                                                    </div>
+                                                </c:if>
                                                 <c:if test="${canCrud}">
                                                     <button class="btn btn-warning btn-sm mb-2" onclick="openEditModal('${c.idCourse}', '${c.name}', '${c.description}')">Edit</button>
                                                     <form action="${pageContext.request.contextPath}/courses" method="post" style="display:inline;">
@@ -120,6 +131,7 @@
                         </c:otherwise>
                     </c:choose>
                 </div>
+                <!-- Added section for course buttons -->
             </div>
         </div>
     </div>

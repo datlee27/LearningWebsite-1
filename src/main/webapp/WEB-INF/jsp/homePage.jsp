@@ -49,7 +49,7 @@
 
                 <!-- Course Section -->
                 <div class="col-md-9">
-                    <h2>Featured Courses</h2>
+                    <h2>My Courses</h2>
                     <div class="row">
                         <c:forEach var="course" items="${courses}">
                             <div class="card">
@@ -57,9 +57,15 @@
                                 <div class="card-body">
                                     <h5>${course.name}</h5>
                                     <p>${course.description}</p>
+                                    <a href="${pageContext.request.contextPath}/lectureDetail?lectureId=${lastLectureMap[course.idCourse]}" class="btn btn-info">
+                                        <i class="fas fa-book-open"></i> Continue Learning
+                                    </a>
                                 </div>
                             </div>
                         </c:forEach>
+                        <c:if test="${empty courses}">
+                            <div class="alert alert-info mt-3">You are not enrolled in any courses yet.</div>
+                        </c:if>
                     </div>
                 </div>
             </div>

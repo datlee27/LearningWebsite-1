@@ -21,16 +21,29 @@ public class LectureServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        String role = (String) request.getSession().getAttribute("teacher");
-        if (role == null || !"teacher".equals(role)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to access this page.");
-            return;
-        }
+        String role = (String) request.getSession().getAttribute("role");
+        int userId = (int) request.getSession().getAttribute("id");
         int courseId = Integer.parseInt(request.getParameter("courseId"));
-        List<Lecture> lectures = lectureDAO.getLecturesByCourse(courseId);
+
+        List<Lecture> lectures;
+        if (null == role) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        } else switch (role) {
+            case "teacher":
+                lectures = lectureDAO.getLecturesByCourseForTeacher(courseId, userId);
+                break;
+            case "student":
+                lectures = lectureDAO.getLecturesByCourseForStudent(courseId, userId);
+                break;
+            default:
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+        }
         request.setAttribute("lectures", lectures);
+        request.setAttribute("role", role);
         request.setAttribute("courseId", courseId);
-        request.getRequestDispatcher("/view/lectures.jsp").forward(request, response);
+        request.getRequestDispatcher("WEB-INF/jsp/lectureDetail.jsp").forward(request, response);
     }
 
     @Override
