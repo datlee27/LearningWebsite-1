@@ -62,10 +62,6 @@ public class AssignmentServlet extends HttpServlet {
             logger.info("Assignment added successfully for course ID: " + courseId);
             session.setAttribute("success", true);
           response.sendRedirect(request.getContextPath() + "/assignments");
-        } catch (SQLException e) {
-            logger.severe("Database error while adding assignment: " + e.getMessage());
-            request.setAttribute("error", "Failed to add assignment: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/lectureDetail.jsp?courseId=" + courseId).forward(request, response);
         } catch (Exception e) {
             logger.severe("Unexpected error while adding assignment: " + e.getMessage());
             request.setAttribute("error", "An unexpected error occurred: " + e.getMessage());
@@ -111,6 +107,6 @@ public class AssignmentServlet extends HttpServlet {
             request.setAttribute("error", "Error loading data: " + e.getMessage());
         }
 
-        request.getRequestDispatcher("/WEB-INF/jsp/assignmentList.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/jsp/assignmentDetail.jsp").forward(request, response);
     }
 }
