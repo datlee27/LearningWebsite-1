@@ -31,8 +31,8 @@ public class Course {
     private String description;
 
     @Column(name = "teacher_id")
-    private int idTeacher;
-    
+    private int idTeacher; 
+
     @Column(name = "image")
     private String image;
 
