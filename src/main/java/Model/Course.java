@@ -43,7 +43,10 @@ public class Course {
     // Correct: mappedBy points to the 'course' field in the Assignment entity
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Assignment> assignments = new ArrayList<>();
-
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+     private List<Enrollment> enrollments= new ArrayList<>();
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<User> students = new ArrayList<>();
     // Constructors, Getters, and Setters remain the same...
     public Course() {}
 
@@ -54,6 +57,7 @@ public class Course {
         this.image=image;
         this.lectures = new ArrayList<>();
         this.assignments = new ArrayList<>();
+        this.students = new ArrayList<>();
     }
 
     public int getIdTeacher() {
@@ -111,6 +115,22 @@ public class Course {
 
     public void setAssignments(List<Assignment> assignments) {
         this.assignments = assignments;
+    }
+
+    public List<Enrollment> getEnrollments() {
+        return enrollments;
+    }
+
+    public void setEnrollments(List<Enrollment> enrollments) {
+        this.enrollments = enrollments;
+    }
+
+    public List<User> getStudents() {
+        return students;
+    }
+
+    public void setStudents(List<User> students) {
+        this.students = students;
     }
 
 

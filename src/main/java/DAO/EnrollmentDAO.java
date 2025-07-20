@@ -5,10 +5,14 @@ import java.util.List;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.Enrollment;
+import model.User;
 
 public class EnrollmentDAO {
-    
+    private static final Logger logger = Logger.getLogger(EnrollmentDAO.class.getName());
     public void save(Enrollment enrollment) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
@@ -84,6 +88,48 @@ public class EnrollmentDAO {
               .setParameter("courseId", courseId)
               .executeUpdate();
             tx.commit();
+        } finally {
+            em.close();
+        }
+        
+    }
+    public List<User> getStudentsByCourseId(int courseId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<User> query = em.createQuery(
+                "SELECT e.student FROM Enrollment e WHERE e.course.idCourse = :courseId AND e.student.role = 'student'",
+                User.class
+            );
+            query.setParameter("courseId", courseId);
+            List<User> students = query.getResultList();
+            logger.log(Level.INFO, "Total students found for courseId {0}: {1}", 
+                new Object[]{courseId, students.size()});
+            return students;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving students for courseId: {0}, Error: {1}", 
+                new Object[]{courseId, e.getMessage()});
+            return Collections.emptyList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Enrollment> getEnrollmentsByCourseId(int courseId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Enrollment> query = em.createQuery(
+                "SELECT e FROM Enrollment e WHERE e.course.idCourse = :courseId AND e.student.role = 'student'",
+                Enrollment.class
+            );
+            query.setParameter("courseId", courseId);
+            List<Enrollment> enrollments = query.getResultList();
+            logger.log(Level.INFO, "Total enrollments found for courseId {0}: {1}", 
+                new Object[]{courseId, enrollments.size()});
+            return enrollments;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving enrollments for courseId: {0}, Error: {1}", 
+                new Object[]{courseId, e.getMessage()});
+            return Collections.emptyList();
         } finally {
             em.close();
         }
