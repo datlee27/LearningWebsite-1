@@ -41,6 +41,9 @@ public class Assignment {
     @Column(name = "status")
     private String status;
 
+    private String courseName; // New field
+    private String lectureTitle;
+    
     public Assignment() {
     }
 
@@ -52,6 +55,23 @@ public Assignment(int idCourse, int idLecture, String title, String description,
         this.dueDate = dueDate;
         this.status = status;
     }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
+    public String getLectureTitle() {
+        return lectureTitle;
+    }
+
+    public void setLectureTitle(String lectureTitle) {
+        this.lectureTitle = lectureTitle;
+    }
+
 
     public int getIdAss() {
         return idAss;
@@ -108,6 +128,8 @@ public Assignment(int idCourse, int idLecture, String title, String description,
     public void setStatus(String status) {
         this.status = status;
     }
-
+  public java.util.Date getDueDateAsJavaUtilDate() {
+    return new java.util.Date(dueDate.getValue());
+    }
 
 }

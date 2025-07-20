@@ -105,4 +105,24 @@ public class AssignmentDAO {
             em.close();
         }
     }
+    public List<Assignment> getAssignmentsByCourseId(int courseId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Assignment> query = em.createQuery(
+                "SELECT a FROM Assignment a WHERE a.idCourse = :courseId",
+                Assignment.class
+            );
+            query.setParameter("courseId", courseId);
+            List<Assignment> assignments = query.getResultList();
+            logger.log(Level.INFO, "Found {0} assignments for courseId: {1}", 
+                new Object[]{assignments.size(), courseId});
+            return assignments;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving assignments for courseId: {0}, Error: {1}", 
+                new Object[]{courseId, e.getMessage()});
+            return Collections.emptyList();
+        } finally {
+            em.close();
+        }
+    }
 }

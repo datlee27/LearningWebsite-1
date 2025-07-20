@@ -123,5 +123,24 @@ public class LectureDAO {
         } finally {
             em.close();
         }
+        
+    }
+    public Lecture getLectureById(int id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Lecture lecture = em.find(Lecture.class, id);
+            if (lecture != null) {
+                logger.log(Level.INFO, "Found lecture with ID: {0}", id);
+            } else {
+                logger.log(Level.WARNING, "Lecture not found for ID: {0}", id);
+            }
+            return lecture;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving lecture for ID: {0}, Error: {1}", 
+                new Object[]{id, e.getMessage()});
+            return null;
+        } finally {
+            em.close();
+        }
     }
 }

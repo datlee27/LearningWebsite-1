@@ -198,4 +198,23 @@ public class CourseDAO {
             em.close();
         }
     }
+    public Course getCourseById(int id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Course course = em.find(Course.class, id);
+            if (course != null) {
+                logger.log(Level.INFO, "Found course with ID: {0}", id);
+            } else {
+                logger.log(Level.WARNING, "Course not found for ID: {0}", id);
+            }
+            return course;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving course for ID: {0}, Error: {1}", 
+                new Object[]{id, e.getMessage()});
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
 }
