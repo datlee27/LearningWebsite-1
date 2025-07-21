@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!-- Add at the end of body, before </body> -->
 <style>
 #chatbot-btn {
     position: fixed;
@@ -57,16 +57,6 @@
     overflow-y: auto;
     font-size: 0.97rem;
 }
-#chatbot-messages .user {
-    text-align: right;
-    margin: 5px 0;
-    color: #007bff;
-}
-#chatbot-messages .bot {
-    text-align: left;
-    margin: 5px 0;
-    color: #333;
-}
 #chatbot-input-area {
     display: flex;
     border-top: 1px solid #eee;
@@ -97,30 +87,26 @@
 </style>
 
 <!-- Chatbot Button -->
-<button id="chatbot-btn" title="Hỏi AI">
+<button id="chatbot-btn" title="Ask AI">
     <i class="bi bi-robot"></i>
 </button>
 
 <!-- Chatbot Popup -->
 <div id="chatbot-popup">
     <div id="chatbot-header">
-        <span>Chatbot AI</span>
-        <button type="button" id="chatbot-close" style="background:none;border:none;color:#fff;font-size:1.3rem;">×</button>
+        <span>AI Chatbot</span>
+        <button type="button" id="chatbot-close" style="background:none;border:none;color:#fff;font-size:1.3rem;">&times;</button>
     </div>
     <div id="chatbot-messages">
-        <div class="bot">Xin chào! Hỏi tôi bất cứ điều gì về trang web hoặc khóa học của bạn.</div>
+        <div style="color:#888;">Hi! Ask me anything about this website or your courses.</div>
     </div>
     <form id="chatbot-input-area" autocomplete="off">
-        <input type="text" id="chatbot-input" placeholder="Nhập câu hỏi..." required />
-        <button type="submit" id="chatbot-send">Gửi</button>
+        <input type="text" id="chatbot-input" placeholder="Type your question..." required />
+        <button type="submit" id="chatbot-send">Send</button>
     </form>
 </div>
 
 <script>
-function escapeHTML(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
 document.getElementById('chatbot-btn').onclick = function() {
     document.getElementById('chatbot-popup').classList.add('active');
 };
@@ -133,11 +119,12 @@ document.getElementById('chatbot-input-area').onsubmit = async function(e) {
     const msg = input.value.trim();
     if (!msg) return;
     const messages = document.getElementById('chatbot-messages');
-    messages.innerHTML += `<div class="user"><b>Bạn:</b> ${escapeHTML(msg)}</div>`;
+    messages.innerHTML += `<div><b>You:</b> ${msg}</div>`;
     input.value = '';
     messages.scrollTop = messages.scrollHeight;
 
-    messages.innerHTML += `<div class="bot" style="color:#888;"><i>AI đang trả lời...</i></div>`;
+    // Call your AI backend (replace '/chatbot' with your actual endpoint)
+    messages.innerHTML += `<div style="color:#888;"><i>AI is typing...</i></div>`;
     messages.scrollTop = messages.scrollHeight;
     try {
         const res = await fetch('${pageContext.request.contextPath}/chatbot', {
@@ -145,15 +132,12 @@ document.getElementById('chatbot-input-area').onsubmit = async function(e) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({message: msg})
         });
-        if (!res.ok) throw new Error('Lỗi kết nối với AI');
         const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        messages.innerHTML = messages.innerHTML.replace('<div class="bot" style="color:#888;"><i>AI đang trả lời...</i></div>', '');
-        messages.innerHTML += `<div class="bot"><b>AI:</b> ${escapeHTML(data.reply)}</div>`;
+        messages.innerHTML = messages.innerHTML.replace('<div style="color:#888;"><i>AI is typing...</i></div>', '');
+        messages.innerHTML += `<div><b>AI:</b> ${data.reply}</div>`;
         messages.scrollTop = messages.scrollHeight;
     } catch (err) {
-        messages.innerHTML = messages.innerHTML.replace('<div class="bot" style="color:#888;"><i>AI đang trả lời...</i></div>', '');
-        messages.innerHTML += `<div class="bot" style="color:red;">Lỗi: ${escapeHTML(err.message)}</div>`;
+        messages.innerHTML += `<div style="color:red;">Sorry, I could not connect to the AI service.</div>`;
         messages.scrollTop = messages.scrollHeight;
     }
 };

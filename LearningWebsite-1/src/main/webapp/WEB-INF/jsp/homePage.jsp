@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <jsp:include page="/WEB-INF/jsp/navbar.jsp" />
+    <jsp:include page="/WEB_INF/jsp/navbar.jsp" />
 
     <!-- Main Content -->
     <div class="container mt-4">
@@ -74,7 +74,7 @@
                                         <a href="course${course.idCourse}.jsp" class="btn btn-primary mt-2">Start Learning</a>
                                     </c:if>
                                     <c:if test="${empty sessionScope.username}">
-                                        <a href="${pageContext.request.contextPath}/WEB-INF/jsp/login.jsp" class="btn btn-secondary mt-2">Sign In to Start Learning</a>
+                                        <a href="${pageContext.request.contextPath}/WEB_INF/jsp/login.jsp" class="btn btn-secondary mt-2">Sign In to Start Learning</a>
                                     </c:if>
                                 </div>
                             </div>s
@@ -84,7 +84,7 @@
             </div>
         </div>
     </div>
-      <jsp:include page="/WEB-INF/jsp/chatbot.jsp" />
+
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
