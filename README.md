@@ -77,7 +77,8 @@ LMS/
 
 <img width="810" height="423" alt="Ảnh màn hình 2025-08-29 lúc 15 07 40" src="https://github.com/user-attachments/assets/05e47b47-ed7f-4a24-8800-096b2da59d8b" />
 
-![Uploading Ảnh màn hình 2025-08-29 lúc 15.08.05.png…]()
+<img width="805" height="430" alt="Ảnh màn hình 2025-08-29 lúc 15 07 48" src="https://github.com/user-attachments/assets/59e565c6-65ac-4cd1-84ae-6f715ca2b308" />
+
 
 
 
