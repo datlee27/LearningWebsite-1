@@ -1,4 +1,4 @@
-<img width="800" height="422" alt="Ảnh màn hình 2025-08-29 lúc 15 08 38" src="https://github.com/user-attachments/assets/f5265bfd-a97e-4ca2-8370-8f0e727120f5" /># 🎓 Learning Management System (LMS) with AI Assistant  
+ 🎓 Learning Management System (LMS) with AI Assistant  
 
 ## 👥 Nhóm thực hiện  
 - Đặng Phương Khôi Nguyên 
@@ -77,7 +77,8 @@ LMS/
 
 <img width="810" height="423" alt="Ảnh màn hình 2025-08-29 lúc 15 07 40" src="https://github.com/user-attachments/assets/05e47b47-ed7f-4a24-8800-096b2da59d8b" />
 
-<img width="805" height="430" alt="Ảnh màn hình 2025-08-29 lúc 15 07 48" src="https://github.com/user-attachments/assets/fbfdb3a0-015a-4e65-b82b-ffc45685934a" />
+![Uploading Ảnh màn hình 2025-08-29 lúc 15.08.05.png…]()
+
 
 
 
